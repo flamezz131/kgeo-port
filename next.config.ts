@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
     root: projectRoot,
   },
   outputFileTracingRoot: projectRoot,
+  // Serve <Image> sources straight from /public. In Vercel services mode the
+  // /_next/image optimizer endpoint is not provisioned and returns 404.
+  images: {
+    unoptimized: true,
+  },
   experimental: {
     serverActions: {
       // 10 MiB evidence plus bounded multipart overhead.
