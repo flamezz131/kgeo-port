@@ -72,7 +72,8 @@ export async function POST(request: Request) {
         if (resumeError) throw resumeError;
         
         const buffer = await resumeData.arrayBuffer();
-        const pdfData = await pdf(Buffer.from(buffer));
+        const pdfFn = pdf.default || pdf;
+        const pdfData = await pdfFn(Buffer.from(buffer));
         resumeText = pdfData.text.substring(0, 3000);
       } catch (err) {
         console.error('Failed to extract resume text:', err);
