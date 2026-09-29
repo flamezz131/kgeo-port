@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { backendUrl } from "@/lib/recommendations/backend";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -12,10 +13,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const backendUrl = process.env.KGEO_BACKEND_URL;
+  const targetUrl = backendUrl("api/programs");
   const internalSecret = process.env.INTERNAL_API_SECRET;
 
-  if (!backendUrl || !internalSecret) {
+  if (!targetUrl || !internalSecret) {
     console.error(
       "Server configuration error in /api/programs: Missing KGEO_BACKEND_URL or INTERNAL_API_SECRET."
     );
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const backendResponse = await fetch(`${backendUrl}/api/programs`, {
+    const backendResponse = await fetch(targetUrl, {
       method: "GET",
       headers: {
         "x-internal-secret": internalSecret,

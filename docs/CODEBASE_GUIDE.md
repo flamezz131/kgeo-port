@@ -21,7 +21,9 @@ app never sees it. Run both together with `npm run dev:all`.
 
 The web app reaches the PR backend through `KGEO_BACKEND_URL`, authenticated
 with the shared `INTERNAL_API_SECRET` header that
-`pr-backend/src/middleware/verifyInternalSecret.ts` checks.
+`pr-backend/src/middleware/verifyInternalSecret.ts` checks. On Vercel both run
+as services of one project (`vercel.json`): `app` is public, `pr-backend` is
+internal and `KGEO_BACKEND_URL` is injected into `app` by a service binding.
 
 ---
 

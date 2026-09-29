@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { backendUrl } from "@/lib/recommendations/backend";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -25,13 +26,13 @@ export async function POST(request: Request) {
     studentId: user.id,
   };
 
-  const backendUrl = process.env.KGEO_BACKEND_URL;
+  const targetUrl = backendUrl("api/pr-intake");
   const internalSecret = process.env.INTERNAL_API_SECRET;
 
-  if (!backendUrl || !internalSecret) {
+  if (!targetUrl || !internalSecret) {
     console.error(
       "Server configuration error in /api/recommendations/pr-intake: Missing KGEO_BACKEND_URL or INTERNAL_API_SECRET. KGEO_BACKEND_URL:",
-      backendUrl,
+      process.env.KGEO_BACKEND_URL,
       "INTERNAL_API_SECRET:",
       internalSecret ? "[SET]" : "[MISSING]"
     );
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const backendResponse = await fetch(`${backendUrl}/api/pr-intake`, {
+    const backendResponse = await fetch(targetUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

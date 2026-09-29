@@ -924,7 +924,7 @@ These hold across the codebase. Breaking one should fail a test.
 | `NEXT_PUBLIC_SUPABASE_URL` | web | Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | web | Publishable key. RLS applies. Validated by `lib/supabase/env.ts`. |
 | `NEXT_PUBLIC_SITE_URL` | web | Canonical origin for verification email links. |
-| `KGEO_BACKEND_URL` | web | Base URL of `pr-backend`. |
+| `KGEO_BACKEND_URL` | web | Base URL of `pr-backend`. Set in `.env.local` for local dev; on Vercel it is injected by the service binding in `vercel.json`, so do not set it there. |
 | `INTERNAL_API_SECRET` | **both** | Shared secret for the `x-internal-secret` header. |
 | `SUPABASE_URL` | backend | Supabase project URL. |
 | `SUPABASE_SERVICE_ROLE_KEY` | backend | **Service role.** Bypasses RLS. Backend only. |
