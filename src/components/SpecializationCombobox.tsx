@@ -28,6 +28,7 @@ export function SpecializationCombobox({
   allSpecs,
 }: SpecializationComboboxProps) {
   const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   const toggleSpec = (spec: string) => {
     if (selectedSpecs.includes(spec)) {
@@ -35,10 +36,20 @@ export function SpecializationCombobox({
     } else {
       onChange([...selectedSpecs, spec]);
     }
+    setInputValue("");
+  };
+
+  const [customInput, setCustomInput] = useState("");
+
+  const handleAddCustom = () => {
+    if (customInput.trim() && !selectedSpecs.includes(customInput.trim())) {
+      onChange([...selectedSpecs, customInput.trim()]);
+    }
+    setCustomInput("");
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           type="button"
@@ -63,10 +74,12 @@ export function SpecializationCombobox({
             <CommandInput
               placeholder="Search specializations..."
               className="border-b border-[#DCE6F2]"
+              value={inputValue}
+              onValueChange={setInputValue}
             />
             <CommandList className="max-h-64 overflow-y-auto p-1">
               <CommandEmpty className="py-6 text-center text-sm text-[#64748B]">
-                No specialization found.
+                No exact specialization found. You can add it below!
               </CommandEmpty>
               <CommandGroup>
                 {allSpecs.map((spec) => {
@@ -94,6 +107,31 @@ export function SpecializationCombobox({
           </Command>
         </PopoverContent>
       </Popover>
+
+      {/* Separate input for adding unlisted specializations */}
+      <div className="flex items-center gap-2 mt-3 pt-2">
+        <input 
+          type="text" 
+          value={customInput} 
+          onChange={e => setCustomInput(e.target.value)} 
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleAddCustom();
+            }
+          }}
+          placeholder="Type a domain specialization not listed above..." 
+          className="flex-1 px-3 py-2.5 border border-[#DCE6F2] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] transition-colors"
+        />
+        <button 
+          type="button" 
+          onClick={handleAddCustom}
+          disabled={!customInput.trim()}
+          className="px-5 py-2.5 bg-[#1D4ED8] text-white rounded-xl text-sm font-semibold hover:bg-[#1e40af] disabled:opacity-50 transition-colors shadow-sm"
+        >
+          Add
+        </button>
+      </div>
 
       {selectedSpecs.length > 0 && (
         <div className="flex flex-wrap gap-2">
