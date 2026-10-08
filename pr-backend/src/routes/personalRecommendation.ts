@@ -158,15 +158,36 @@ prGenerateRouter.post('/recommendations/pr/generate', async (req: Request, res: 
         if (resumeError) throw resumeError;
         
         const buffer = await resumeData.arrayBuffer();
-        const pdfData = await pdf(Buffer.from(buffer));
         
-        let rawResume = pdfData.text.substring(0, 3000);
-        // Simple PII redaction for phone numbers and emails
-        rawResume = rawResume.replace(/\b\d{10}\b/g, '[REDACTED PHONE]');
-        rawResume = rawResume.replace(/[\w.-]+@[\w.-]+\.\w+/g, '[REDACTED EMAIL]');
-        resumeText = rawResume;
+        let rawResume = '';
+        try {
+          const base64Pdf = Buffer.from(buffer).toString('base64');
+          const extractionResponse = await geminiClient.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: [
+              "Extract all the text from this resume, accurately reflecting academic details, skills, internships, and research.",
+              { inlineData: { data: base64Pdf, mimeType: 'application/pdf' } }
+            ]
+          });
+          rawResume = extractionResponse.text || '';
+        } catch (geminiError) {
+          console.error('Gemini extraction failed, falling back to pdf-parse:', geminiError);
+          try {
+            const pdfData = await pdf(Buffer.from(buffer));
+            rawResume = pdfData.text.substring(0, 3000);
+          } catch (pdfError) {
+            console.error('Fallback pdf-parse also failed:', pdfError);
+          }
+        }
+
+        if (rawResume) {
+          // Simple PII redaction for phone numbers and emails
+          rawResume = rawResume.replace(/\b\d{10}\b/g, '[REDACTED PHONE]');
+          rawResume = rawResume.replace(/[\w.-]+@[\w.-]+\.\w+/g, '[REDACTED EMAIL]');
+          resumeText = rawResume.substring(0, 6000);
+        }
       } catch (err) {
-        console.error('Failed to extract resume text:', err);
+        console.error('Failed to process resume text:', err);
       }
     }
 
@@ -197,6 +218,7 @@ prGenerateRouter.post('/recommendations/pr/generate', async (req: Request, res: 
 
     let rawOutput = '';
     let succeeded = false;
+    let isFallback = false;
     let parsedRecommendations: any[] = [];
 
     try {
@@ -234,6 +256,43 @@ prGenerateRouter.post('/recommendations/pr/generate', async (req: Request, res: 
         llmError instanceof Error ? { message: llmError.message, stack: llmError.stack } : llmError
       );
       succeeded = false;
+      isFallback = true;
+    }
+
+    if (!succeeded || parsedRecommendations.length === 0) {
+      isFallback = true;
+      succeeded = true; // Set to true so we can save the fallback options
+      const prefCountry = intakeRow.preferred_countries?.[0] || "Global";
+      const prefCourse = intakeRow.preferred_courses?.[0] || "General Studies";
+      parsedRecommendations = [
+        {
+          university: "General State University",
+          country: prefCountry,
+          course: prefCourse,
+          degree_type: "Masters",
+          tagline: "Retry to Gemini",
+          admission_probability: 85,
+          improvement_message: "This is a fallback recommendation due to a processing error. Please click retry to get your highly personalized insights from Gemini."
+        },
+        {
+          university: "Institute of Global Excellence",
+          country: prefCountry,
+          course: prefCourse,
+          degree_type: "Masters",
+          tagline: "Retry to Gemini",
+          admission_probability: 65,
+          improvement_message: "This is a fallback recommendation due to a processing error. Please click retry to get your highly personalized insights from Gemini."
+        },
+        {
+          university: "Premier International College",
+          country: prefCountry,
+          course: prefCourse,
+          degree_type: "Masters",
+          tagline: "Retry to Gemini",
+          admission_probability: 45,
+          improvement_message: "This is a fallback recommendation due to a processing error. Please click retry to get your highly personalized insights from Gemini."
+        }
+      ];
     }
 
     const { error: logError } = await supabaseAdmin
@@ -371,7 +430,7 @@ prGenerateRouter.post('/recommendations/pr/generate', async (req: Request, res: 
       .update({ status: finalStatus })
       .eq('id', recommendationId);
 
-    if (succeeded) {
+    if (succeeded && !isFallback) {
       await supabaseAdmin
         .from('pr_intake')
         .update({ last_generated_at: new Date().toISOString() })

@@ -72,11 +72,30 @@ export async function POST(request: Request) {
         if (resumeError) throw resumeError;
         
         const buffer = await resumeData.arrayBuffer();
-        const pdfFn = pdf.default || pdf;
-        const pdfData = await pdfFn(Buffer.from(buffer));
-        resumeText = pdfData.text.substring(0, 3000);
+        
+        try {
+          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+          const base64Pdf = Buffer.from(buffer).toString('base64');
+          const extractionResponse = await ai.models.generateContent({
+            model: "gemini-1.5-flash",
+            contents: [
+              "Extract all the text from this resume, accurately reflecting academic details, skills, internships, and research.",
+              { inlineData: { data: base64Pdf, mimeType: 'application/pdf' } }
+            ]
+          });
+          resumeText = (extractionResponse.text || '').substring(0, 6000);
+        } catch (geminiError) {
+          console.error('Gemini extraction failed, falling back to pdf-parse:', geminiError);
+          try {
+            const pdfFn = pdf.default || pdf;
+            const pdfData = await pdfFn(Buffer.from(buffer));
+            resumeText = pdfData.text.substring(0, 3000);
+          } catch (pdfError) {
+            console.error('Fallback pdf-parse also failed:', pdfError);
+          }
+        }
       } catch (err) {
-        console.error('Failed to extract resume text:', err);
+        console.error('Failed to process resume text:', err);
       }
     }
 
@@ -145,6 +164,7 @@ export async function POST(request: Request) {
     const recommendationId = recData.id;
     let rawOutput = '';
     let succeeded = false;
+    let isFallback = false;
     let parsedData: any = null;
 
     try {
@@ -170,6 +190,37 @@ export async function POST(request: Request) {
     } catch (llmError) {
       console.error('LLM generation failed:', llmError);
       succeeded = false;
+      isFallback = true;
+    }
+
+    if (!succeeded || !parsedData) {
+      isFallback = true;
+      succeeded = true;
+      parsedData = {
+        profile_summary: "Fallback profile summary due to a processing error.",
+        readiness_score: 50,
+        strengths: [],
+        priority_gaps: [],
+        quick_wins: [],
+        long_term_actions: [],
+        universities: [
+          {
+            university: "General State University",
+            program: "General Studies",
+            country: studentContext.preferences?.preferredCountries?.[0] || "Global",
+            category: "Target",
+            fit_score: 80,
+            why_recommended: ["Retry to Gemini: This is a fallback recommendation. Click retry to get highly personalized insights."],
+            current_profile: {},
+            target_profile: {},
+            gaps: [],
+            top_actions: [],
+            risks: [],
+            application_readiness: { score: 50 }
+          }
+        ],
+        roadmap_stages: []
+      };
     }
 
     const { error: logError } = await supabaseAdmin
@@ -363,7 +414,7 @@ export async function POST(request: Request) {
       .update({ status: finalStatus })
       .eq('id', recommendationId);
 
-    if (succeeded) {
+    if (succeeded && !isFallback) {
       await supabaseAdmin
         .schema('public')
         .from('student_profiles')
