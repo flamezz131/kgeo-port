@@ -43,7 +43,7 @@ export async function loadStudentContextForPR(studentId: string, customDb?: any)
     .eq('student_id', studentId)
     .single();
 
-  if (profileError) {
+  if (profileError && profileError.code !== 'PGRST116') {
     throw new Error(`Failed to load student profile: ${profileError.message}`);
   }
 
