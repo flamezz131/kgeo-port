@@ -139,6 +139,16 @@ const reviewedMigrationHashes = {
     "b376ddb00647df548e01c4f723fb5c10efe43ae460ddee4bd2350e39bb6e4d29",
   "202609230001_student_preferences_merge2_tab.sql":
     "8ee1f302da33c14e7ab93ee8dc5f17352e0f8a188b1bc473ab7920089c0313fe",
+  "202609290001_fix_eligibility_function_syntax.sql":
+    "ae06ac7afe7ffbd69b6b9624779ef2ca1ec6a720fc7b67160d83e8b4a6deaae3",
+  "202609290002_public_progress_funnel_validation.sql":
+    "721fd5a5c8210adfbe0a62af640ee1b17605c98f488be1f77c692acf4f5538d6",
+  "202610080001_single_counselor_authorization.sql":
+    "05fe6d9a1623f8988a3a0faf510cad97a04fb40fe81254fa37d9a4465ed55970",
+  "202610080002_student_multi_institution_auth.sql":
+    "61d9c4f449d02ce3087a6ad6a0fb316fe2a98900d660a170db5864589675d778",
+  "202610080003_student_graduation_year_range.sql":
+    "8dc58379b5aae1dbb8c23a0c3bba2fe9c223b4fd77ad956f6c8515db05adb7f0",
 } as const;
 
 function hashFile(path: URL): string {
@@ -270,6 +280,133 @@ test("final canonical readiness is uniquely authoritative and covers every migra
       );
     }
   }
+});
+
+test("single Counselor cutover has a read-only post-cutover verifier and leaves canonical readiness frozen", () => {
+  const cutoverVerifier = readFileSync(
+    new URL(
+      "../../../supabase/verification/202610080001_single_counselor_authorization.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  ).replace(/\r\n/g, "\n");
+  const executableVerifier = cutoverVerifier.replace(/--.*$/gm, "");
+
+  // Read-only, catalog-and-aggregate only, label/boolean output.
+  assert.match(executableVerifier, /begin transaction read only;/);
+  assert.match(executableVerifier, /set local search_path = '';/);
+  assert.match(executableVerifier, /rollback;\s*$/);
+  assert.doesNotMatch(executableVerifier, /\bcommit\b/i);
+  assert.doesNotMatch(
+    executableVerifier,
+    /^\s*(?:insert|update|delete|alter|create|drop|grant|revoke|truncate|do)\b/gim,
+  );
+  assert.doesNotMatch(executableVerifier, /set_config|request\.jwt/i);
+  assert.match(
+    executableVerifier,
+    /select check_name, passed\s+from checks\s+order by check_name;/,
+  );
+  assert.doesNotMatch(
+    executableVerifier,
+    /select[^;]*\b(?:email|college_email|full_name|username)\b/i,
+  );
+
+  for (const checkName of [
+    "CANONICAL_HELPER_METADATA_EXACT",
+    "CANONICAL_HELPER_EXECUTE_AUTHENTICATED_ONLY",
+    "CANONICAL_HELPER_REQUIRES_APPROVED_ACTIVE_VERIFIED_COUNSELOR",
+    "COMPATIBILITY_HELPER_METADATA_EXACT",
+    "COMPATIBILITY_HELPER_EXECUTE_AUTHENTICATED_ONLY",
+    "COMPATIBILITY_HELPER_DELEGATES_AND_REQUIRES_STUDENT_TARGET",
+    "ASSIGNMENT_HISTORY_IS_NOT_THE_HELPER_AUTHORIZATION_BOUNDARY",
+    "NO_RLS_POLICY_READS_ASSIGNMENT_HISTORY_DIRECTLY",
+    "ASSIGNMENT_HISTORY_TABLE_PRESERVED_AND_PROTECTED",
+    "EXACTLY_ONE_OPERATIONAL_COUNSELOR",
+    "REVIEWED_INSTITUTIONAL_COUNSELOR_IS_OPERATIONAL",
+    "NO_OTHER_COUNSELOR_SATISFIES_AUTHORIZATION",
+  ]) {
+    assert.equal(
+      executableVerifier.split(`'${checkName}'`).length - 1,
+      1,
+      checkName,
+    );
+  }
+
+  // Exact metadata: both helpers, definer, stable, postgres, empty search path
+  // in either catalog representation, authenticated-only EXECUTE.
+  assert.equal(
+    executableVerifier.match(
+      /helper\.configuration in \(\s*array\['search_path='\]::text\[\],\s*array\['search_path=""'\]::text\[\]\s*\)/g,
+    )?.length,
+    2,
+  );
+  assert.equal(
+    executableVerifier.match(/helper\.security_definer is true/g)?.length,
+    2,
+  );
+  assert.equal(executableVerifier.match(/helper\.volatility = 's'/g)?.length, 2);
+  assert.equal(
+    executableVerifier.match(/helper\.owner_name = 'postgres'/g)?.length,
+    2,
+  );
+  for (const role of ["anon", "service_role", "public"]) {
+    assert.equal(
+      executableVerifier.match(
+        new RegExp(
+          `not pg_catalog\\.has_function_privilege\\(\\s*'${role}', helper\\.function_oid, 'EXECUTE'`,
+          "g",
+        ),
+      )?.length,
+      2,
+      role,
+    );
+  }
+
+  // The operational-Counselor predicate matches the migration preflight.
+  const migration = readFileSync(
+    new URL(
+      "202610080001_single_counselor_authorization.sql",
+      migrationDirectoryUrl,
+    ),
+    "utf8",
+  );
+  for (const predicate of [
+    "'counselor'::public.user_role",
+    "is_active is true",
+    "'approved'::public.counselor_approval_status",
+    "email_confirmed_at is not null",
+    "banned_until",
+    "'eaaccd6a-9e05-46e4-bc59-60455f1da7f7'::uuid",
+  ]) {
+    assert.ok(migration.includes(predicate), predicate);
+    assert.ok(executableVerifier.includes(predicate), predicate);
+  }
+  assert.match(
+    executableVerifier,
+    /'student_counselor_assignments'\s*\) = 0/,
+  );
+  assert.match(executableVerifier, /'''student''::public\.user_role'/);
+
+  // The frozen canonical verifier keeps its historical helper expectation and
+  // its pinned hash; the supplement supersedes it without rewriting it.
+  assert.equal(hashFile(canonicalReadinessUrl), activeReadinessHash);
+  assert.match(
+    verificationSource,
+    /'dbafccbd4bae61d5e20bce09ee3b66075664dc23f69943235344c3d123b9fb6b'/,
+  );
+  assert.doesNotMatch(
+    verificationSource,
+    /is_approved_active_verified_counselor/,
+  );
+  assert.match(
+    reconstructionInventory,
+    /supabase\/verification\/202610080001_single_counselor_authorization\.sql/,
+  );
+  assert.match(
+    reconstructionInventory,
+    /temporary\s+compatibility authorization bridge/,
+  );
+  assert.match(reconstructionInventory, /preserved unchanged as history/);
 });
 
 test("rejects schema-qualified SQL special forms in canonical and current cutover SQL", () => {

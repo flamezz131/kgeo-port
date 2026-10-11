@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { Panel, SectionHeader, StateBlock } from "@/components/shell/portal-ui";
+import { SectionHeader, StateBlock } from "@/components/shell/portal-ui";
 import type { CounselorPrimaryStudentsResult } from "@/lib/counselor/primary-assignment";
 
 export function MyPrimaryStudents({
@@ -9,7 +9,7 @@ export function MyPrimaryStudents({
   result: CounselorPrimaryStudentsResult;
 }) {
   return (
-    <Panel aria-labelledby="my-students-heading">
+    <section aria-labelledby="my-students-heading">
       <SectionHeader
         action={
           result.status === "ready" && result.totalCount > 0 ? (
@@ -19,7 +19,6 @@ export function MyPrimaryStudents({
           ) : undefined
         }
         description="Students currently assigned to you as their Primary Counselor."
-        eyebrow="Primary case responsibility"
         title="My Students"
         titleId="my-students-heading"
       />
@@ -42,9 +41,6 @@ export function MyPrimaryStudents({
               <article className="flex h-full flex-col rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <span className="text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[var(--brand-600)]">
-                      Primary assignment
-                    </span>
                     <h3 className="mt-1 break-words text-[var(--ink)]">
                       {student.fullName ?? "Name unavailable"}
                     </h3>
@@ -80,6 +76,6 @@ export function MyPrimaryStudents({
           ))}
         </ul>
       )}
-    </Panel>
+    </section>
   );
 }

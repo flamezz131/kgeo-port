@@ -66,7 +66,6 @@ export function DirectorPublicProgress({
     <div className="director-page director-public-progress-page">
       <header className="page-header director-page-header">
         <div>
-          <span className="eyebrow">Website statistics</span>
           <h1>K-GEO Public Statistics</h1>
           <p>
             Update the latest K-GEO progress figures displayed on the public
@@ -87,7 +86,6 @@ export function DirectorPublicProgress({
         <section className="director-section-card">
           <div className="director-section-heading">
             <div>
-              <span>Published information</span>
               <h2>Latest K-GEO Figures</h2>
             </div>
             <p>Enter all six official management-supplied statistics.</p>
@@ -117,7 +115,6 @@ export function DirectorPublicProgress({
         <section className="director-section-card public-progress-preview-section">
           <div className="director-section-heading">
             <div>
-              <span>Public website</span>
               <h2>Preview</h2>
             </div>
           </div>

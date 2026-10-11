@@ -109,7 +109,6 @@ export default async function StudentProfilePage({
   if (profileResult.error || preferenceResult.error || completionResult.error) {
     return (
       <section className="profile-load-error panel" role="alert">
-        <span className="eyebrow">My profile</span>
         <h1>Profile temporarily unavailable</h1>
         <p className="muted">
           We could not safely load your profile. No information was changed.
@@ -163,7 +162,6 @@ export default async function StudentProfilePage({
   return (
     <>
       <header className="profile-page-header">
-        <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">K-GEO student profile</span>
         <h1>Build your counseling profile</h1>
         <p>
           Save one section at a time. Your progress stays available when you
@@ -172,7 +170,7 @@ export default async function StudentProfilePage({
       </header>
       <StudentProfileOnboarding
         achievementsSection={(
-          <div className="mt-5 grid gap-5">
+          <div className="mt-10 border-t border-[#dce6f2] pt-10">
             <StudentProfileAchievementSection
               achievements={achievements}
               achievementDocuments={achievementDocuments}
@@ -184,8 +182,29 @@ export default async function StudentProfilePage({
         collegeEmail={accountProfile.college_email}
         completion={completion}
         fullName={canonicalFullName}
+        initialStep={
+          parameters.examPage !== undefined
+            ? "records"
+            : parameters.achievementPage !== undefined
+              ? "academics"
+              : "identity"
+        }
         preferences={preferenceResult.data}
         profile={profileResult.data}
+        recordsSection={(
+          <>
+            <StudentProfileExamSection
+              achievements={achievements}
+              achievementDocuments={achievementDocuments}
+              businessToday={businessToday}
+              exams={exams}
+            />
+            <StudentProfileDocuments
+              documents={profileDocuments ?? []}
+              unavailable={profileDocuments === null}
+            />
+          </>
+        )}
       />
     </>
   );

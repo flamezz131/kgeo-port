@@ -2,6 +2,7 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { getRoleHomePath } from "@/lib/auth/role-redirect";
 import { getStudentAccessDecision } from "@/lib/permissions/student-access";
 import { getCounselorAccessDecision } from "@/lib/permissions/counselor-access";
 import { getDirectorAccessDecision } from "@/lib/permissions/director-access";
@@ -94,7 +95,9 @@ export async function requireAdmin() {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") redirect("/student/dashboard");
+  if (profile?.role !== "admin") {
+    redirect(getRoleHomePath(profile?.role) ?? "/login");
+  }
   return { supabase, user };
 }
 

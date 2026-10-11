@@ -115,9 +115,14 @@ test("the profile constraint keeps KCT roles exact and gives only Directors a va
 });
 
 test("public registration stays student-only and rejects all non-KCT domains and role injection", () => {
+  // Application-level Student validation accepts exactly the three Student
+  // institution domains from one contract. The database rule checked below is
+  // still exact-KCT until its own forward migration.
+  assert.match(registrationValidationSource, /STUDENT_INSTITUTION_DOMAINS/);
+  assert.doesNotMatch(registrationValidationSource, /ac\.in|endsWith/);
   assert.match(
-    registrationValidationSource,
-    /INSTITUTIONAL_EMAIL_DOMAIN = "kct\.ac\.in"/,
+    read("./student-institutions.ts"),
+    /STUDENT_INSTITUTION_DOMAINS = \{\s*KCT: "kct\.ac\.in",\s*KCLAS: "kclas\.ac\.in",\s*KCTBS: "kctbs\.ac\.in",\s*\} as const/,
   );
   assert.match(registrationActionSource, /supabase\.auth\.signUp/);
   assert.match(registrationActionSource, /data:\s*\{\s*full_name:/);

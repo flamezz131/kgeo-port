@@ -61,7 +61,6 @@ export default async function CounselorApplicationsPage({
       <section className="counselor-page application-workspace-page">
         <header className="counselor-page-header">
           <div>
-            <span className="eyebrow">Counselor operations</span>
             <h1>Applications</h1>
             <p className="muted">
               Review university applications across students and open Student

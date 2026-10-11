@@ -157,10 +157,10 @@ function Pagination({
   );
 }
 
-function PageHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
+function PageHeader({ title, description }: { title: string; description: string }) {
   return (
     <header className="counselor-page-header director-page-header">
-      <div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div>
+      <div><h1>{title}</h1><p>{description}</p></div>
       <span className="director-read-only-badge">Read-only oversight</span>
     </header>
   );
@@ -172,7 +172,7 @@ export function DirectorStudentsOversight({ result }: {
   const filters = result.status === "invalid" ? null : result.filters;
   return (
     <section className="counselor-page director-page director-oversight-page">
-      <PageHeader eyebrow="Organization-wide students" title="Student oversight" description="Review safe student identity, profile readiness, progression, and aggregate activity." />
+      <PageHeader title="Student oversight" description="Review safe student identity, profile readiness, progression, and aggregate activity." />
       <form action="/director/students" className="director-oversight-filters" method="get">
         <label>Search<input defaultValue={filters?.search ?? ""} maxLength={100} name="q" placeholder="Name or college email" /></label>
         <label>Account<select defaultValue={filters?.active === null || filters === null ? "all" : filters.active ? "active" : "inactive"} name="active"><option value="all">All accounts</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
@@ -197,7 +197,7 @@ export function DirectorConsultationsOversight({ result }: {
   const now = new Date();
   return (
     <section className="counselor-page director-page director-oversight-page">
-      <PageHeader eyebrow="Organization-wide consultations" title="Consultation oversight" description="Monitor assignment, schedules, lifecycle state, and outcome completion without private narrative. Unassigned consultations require an FCFS counselor claim." />
+      <PageHeader title="Consultation oversight" description="Monitor assignment, schedules, lifecycle state, and outcome completion without private narrative. Unassigned consultations require an FCFS counselor claim." />
       <form action="/director/consultations" className="director-oversight-filters" method="get">
         <label>Search<input defaultValue={filters?.search ?? ""} maxLength={100} name="q" placeholder="Student, counselor, or request" /></label>
         <label>Status<select defaultValue={filters?.status ?? "all"} name="status"><option value="all">All statuses</option>{consultationStatuses.map((value) => <option key={value} value={value}>{formatOversightLabel(value)}</option>)}</select></label>
@@ -220,7 +220,7 @@ export function DirectorApplicationsOversight({ result }: {
   const filters = result.status === "invalid" ? null : result.filters;
   return (
     <section className="counselor-page director-page director-oversight-page">
-      <PageHeader eyebrow="Organization-wide applications" title="Application oversight" description="Review the safe university-application pipeline, deadlines, and recorded ownership context." />
+      <PageHeader title="Application oversight" description="Review the safe university-application pipeline, deadlines, and recorded ownership context." />
       <form action="/director/applications" className="director-oversight-filters" method="get">
         <label>Search<input defaultValue={filters?.search ?? ""} maxLength={100} name="q" placeholder="Student, counselor, university, or program" /></label>
         <label>Status<select defaultValue={filters?.status ?? "all"} name="status"><option value="all">All statuses</option>{applicationStatuses.map((value) => <option key={value} value={value}>{formatOversightLabel(value)}</option>)}</select></label>
@@ -240,7 +240,7 @@ export function DirectorApplicationsOversight({ result }: {
 export function DirectorCounselorsOversight({ data }: { data: DirectorCounselorsData }) {
   return (
     <section className="counselor-page director-page director-oversight-page">
-      <PageHeader eyebrow="Organization-wide counselors" title="Counselor workload" description="Review bounded, aggregate operational workload without private notes or individual follow-up content." />
+      <PageHeader title="Counselor workload" description="Review bounded, aggregate operational workload without private notes or individual follow-up content." />
       {data.status === "unavailable" ? <SafeState kind="unavailable" /> : data.items.length === 0 ? <SafeState kind="empty" /> : <>
         <dl className="director-oversight-summary" aria-label="Counselor summary"><div><dt>Counselors shown</dt><dd>{data.items.length}</dd></div><div><dt>Active</dt><dd>{data.items.filter((item) => item.isActive).length}</dd></div><div><dt>Overdue follow-ups</dt><dd>{data.items.reduce((sum, item) => sum + item.overdueFollowUps, 0)}</dd></div></dl>
         <div className="director-oversight-table-wrapper"><table className="director-oversight-table"><caption>Up to 50 counselor workload aggregates</caption><thead><tr><th scope="col">Counselor</th><th scope="col">Account</th><th scope="col">Primary Students</th><th scope="col">Consultations today</th><th scope="col">Pending outcomes</th><th scope="col">Pending follow-ups</th><th scope="col">Overdue follow-ups</th></tr></thead><tbody>{data.items.map((item) => <tr key={item.counselorId}><th scope="row"><Person email={item.collegeEmail} name={item.counselorFullName} /></th><td><span className={`director-status-badge ${item.isActive ? "is-active" : "is-inactive"}`}>{item.isActive ? "Active" : "Inactive"}</span></td><td>{item.assignedStudents}</td><td>{item.consultationsToday}</td><td>{item.pendingOutcomes}</td><td>{item.pendingFollowUps}</td><td>{item.overdueFollowUps}</td></tr>)}</tbody></table></div>
@@ -251,5 +251,5 @@ export function DirectorCounselorsOversight({ data }: { data: DirectorCounselors
 }
 
 export function DirectorOversightLoading({ title }: { title: string }) {
-  return <section aria-busy="true" aria-live="polite" className="counselor-page director-page director-oversight-loading" role="status"><span className="eyebrow">Director oversight</span><h1>Loading {title.toLowerCase()}&hellip;</h1><p>Preparing the current bounded operational view.</p><div aria-hidden="true" className="director-loading-sections"><span /><span /></div></section>;
+  return <section aria-busy="true" aria-live="polite" className="counselor-page director-page director-oversight-loading" role="status"><h1>Loading {title.toLowerCase()}&hellip;</h1><p>Preparing the current bounded operational view.</p><div aria-hidden="true" className="director-loading-sections"><span /><span /></div></section>;
 }

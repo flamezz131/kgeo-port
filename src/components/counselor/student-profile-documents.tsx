@@ -16,7 +16,6 @@ export function CounselorStudentProfileDocuments({
   return (
     <section>
       <header className="student-workspace-section-header">
-        <span className="eyebrow">Student-provided reusable files</span>
         <h2>Profile Documents</h2>
         <p>
           Read-only documents shared with the Student’s current Primary Counselor.

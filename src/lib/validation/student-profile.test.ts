@@ -34,6 +34,18 @@ const {
   validateStudentPreferences,
 } = require("./student-profile.ts") as typeof import("./student-profile");
 
+const {
+  GRADUATION_YEAR_SELECTION_SPAN,
+  PROFILE_GRADUATION_YEARS,
+  getGraduationYearOptions,
+  getGraduationYearRange,
+  isSelectableGraduationYear,
+} = require("../profiles/options.ts") as typeof import("../profiles/options");
+
+// Fixtures follow the calendar so these tests never expire.
+const CURRENT_YEAR = new Date().getFullYear();
+const VALID_GRADUATION_YEAR = String(CURRENT_YEAR + 1);
+
 function validIdentityFormData() {
   const formData = new FormData();
   formData.set("fullName", "  Ananya   Kumar  ");
@@ -45,7 +57,7 @@ function validIdentityFormData() {
   formData.set("department", "Computer Science and Engineering");
   formData.set("currentYear", "4");
   formData.set("currentSemester", "7");
-  formData.set("graduationYear", "2027");
+  formData.set("graduationYear", VALID_GRADUATION_YEAR);
   return formData;
 }
 
@@ -120,7 +132,8 @@ test("rejects malformed FormData file values", () => {
 
 for (const [name, field, value] of [
   ["invalid mobile", "mobileNumber", "98765-43210"],
-  ["invalid graduation year", "graduationYear", "2041"],
+  ["graduation year five years ahead", "graduationYear", String(CURRENT_YEAR + 5)],
+  ["graduation year five years back", "graduationYear", String(CURRENT_YEAR - 5)],
   ["inconsistent year and semester", "currentSemester", "3"],
   ["unknown college", "college", "Unknown College"],
   ["unknown course", "course", "Unknown Course"],
@@ -133,6 +146,32 @@ for (const [name, field, value] of [
     assert.equal(validateStudentIdentity(formData).success, false);
   });
 }
+
+test("rejects a semester above eight even when it matches the year", () => {
+  const formData = validIdentityFormData();
+  formData.set("currentYear", "5");
+  formData.set("currentSemester", "9");
+  const result = validateStudentIdentity(formData);
+  assert.equal(result.success, false);
+  if (!result.success) {
+    assert.deepEqual(result.errors.currentSemester, [
+      "Choose a current semester from 1 to 8.",
+    ]);
+  }
+});
+
+test("rejects a current year above four", () => {
+  const formData = validIdentityFormData();
+  formData.set("currentYear", "5");
+  formData.delete("currentSemester");
+  const result = validateStudentIdentity(formData);
+  assert.equal(result.success, false);
+  if (!result.success) {
+    assert.deepEqual(result.errors.currentYear, [
+      "Choose a current year from 1 to 4.",
+    ]);
+  }
+});
 
 test("accepts valid four-point and ten-point CGPA values", () => {
   const fourPoint = validAcademicsFormData();
@@ -407,4 +446,137 @@ test("ignores protected and unexpected fields in all profile sections", () => {
       }
     }
   }
+});
+
+test("graduation year options are the current year with four before and four after", () => {
+  assert.equal(GRADUATION_YEAR_SELECTION_SPAN, 4);
+  assert.deepEqual(
+    getGraduationYearOptions(2026),
+    [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030],
+  );
+  assert.deepEqual(getGraduationYearRange(2026), {
+    minimum: 2022,
+    maximum: 2030,
+  });
+
+  for (const referenceYear of [2026, 2031, 2040, CURRENT_YEAR]) {
+    const options = getGraduationYearOptions(referenceYear);
+    assert.equal(options.length, 9, String(referenceYear));
+    assert.equal(options[0], referenceYear - 4);
+    assert.equal(options.at(-1), referenceYear + 4);
+    assert.ok(options.includes(referenceYear));
+    for (let offset = 1; offset <= 4; offset += 1) {
+      assert.ok(options.includes(referenceYear - offset));
+      assert.ok(options.includes(referenceYear + offset));
+    }
+    assert.equal(options.includes(referenceYear - 5), false);
+    assert.equal(options.includes(referenceYear + 5), false);
+    assert.deepEqual(
+      options,
+      [...options].sort((left, right) => left - right),
+    );
+    assert.equal(new Set(options).size, options.length);
+  }
+});
+
+test("graduation year options default to the actual current calendar year", () => {
+  assert.deepEqual(
+    getGraduationYearOptions(),
+    getGraduationYearOptions(CURRENT_YEAR),
+  );
+  assert.deepEqual(getGraduationYearRange(), {
+    minimum: CURRENT_YEAR - 4,
+    maximum: CURRENT_YEAR + 4,
+  });
+});
+
+test("a stored out-of-range graduation year stays selectable without widening the normal range", () => {
+  assert.deepEqual(
+    getGraduationYearOptions(2026, 2036),
+    [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2036],
+  );
+  assert.deepEqual(
+    getGraduationYearOptions(2032, 2024),
+    [2024, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036],
+  );
+  // A stored year already inside the range adds nothing.
+  assert.equal(getGraduationYearOptions(2026, 2027).length, 9);
+  assert.equal(getGraduationYearOptions(2026, null).length, 9);
+
+  assert.equal(isSelectableGraduationYear(2036, 2026), false);
+  assert.equal(isSelectableGraduationYear(2036, 2026, 2036), true);
+  assert.equal(isSelectableGraduationYear(2035, 2026, 2036), false);
+  assert.equal(isSelectableGraduationYear(2026.5, 2026), false);
+});
+
+test("identity validation follows the same graduation year range", () => {
+  for (const year of getGraduationYearOptions(2026)) {
+    const formData = validIdentityFormData();
+    formData.set("graduationYear", String(year));
+    const result = validateStudentIdentity(formData, { referenceYear: 2026 });
+    assert.equal(result.success, true, String(year));
+    if (result.success) assert.equal(result.data.graduationYear, year);
+  }
+
+  for (const year of [2021, 2031, 2040, 1999]) {
+    const formData = validIdentityFormData();
+    formData.set("graduationYear", String(year));
+    const result = validateStudentIdentity(formData, { referenceYear: 2026 });
+    assert.equal(result.success, false, String(year));
+    if (!result.success) {
+      assert.deepEqual(result.errors.graduationYear, [
+        "Choose a graduation year from 2022 to 2030.",
+      ]);
+    }
+  }
+});
+
+test("identity validation uses the current calendar year by default", () => {
+  for (const [offset, expected] of [
+    [-5, false],
+    [-4, true],
+    [0, true],
+    [4, true],
+    [5, false],
+  ] as const) {
+    const formData = validIdentityFormData();
+    formData.set("graduationYear", String(CURRENT_YEAR + offset));
+    assert.equal(
+      validateStudentIdentity(formData).success,
+      expected,
+      String(offset),
+    );
+  }
+});
+
+test("identity validation keeps a trusted stored graduation year but nothing else outside the range", () => {
+  const stored = validIdentityFormData();
+  stored.set("graduationYear", "2036");
+  assert.equal(
+    validateStudentIdentity(stored, { referenceYear: 2026 }).success,
+    false,
+  );
+  assert.equal(
+    validateStudentIdentity(stored, {
+      referenceYear: 2026,
+      storedGraduationYear: 2036,
+    }).success,
+    true,
+  );
+
+  const different = validIdentityFormData();
+  different.set("graduationYear", "2037");
+  assert.equal(
+    validateStudentIdentity(different, {
+      referenceYear: 2026,
+      storedGraduationYear: 2036,
+    }).success,
+    false,
+  );
+});
+
+test("the stored-year list used by Counselor readers is unchanged", () => {
+  assert.equal(PROFILE_GRADUATION_YEARS[0], 2024);
+  assert.equal(PROFILE_GRADUATION_YEARS.at(-1), 2040);
+  assert.equal(PROFILE_GRADUATION_YEARS.length, 17);
 });

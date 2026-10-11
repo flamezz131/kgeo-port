@@ -4,20 +4,36 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { PublishPublicProgressActionState } from "@/lib/director/public-progress-action-state";
 import { requireDirector } from "@/lib/permissions";
+import { PUBLIC_PROGRESS_METRICS } from "@/lib/public-progress";
 
 const statisticSchema = z.preprocess(
   (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
   z.coerce.number().int().nonnegative().safe(),
 );
 
-const publishSchema = z.object({
-  applications_initiated: statisticSchema,
-  applications_submitted: statisticSchema,
-  offers_received: statisticSchema,
-  confirmed_acceptance: statisticSchema,
-  visa_approved: statisticSchema,
-  enrolled_overseas: statisticSchema,
-});
+const publishSchema = z
+  .object({
+    applications_initiated: statisticSchema,
+    applications_submitted: statisticSchema,
+    offers_received: statisticSchema,
+    confirmed_acceptance: statisticSchema,
+    visa_approved: statisticSchema,
+    enrolled_overseas: statisticSchema,
+  })
+  .superRefine((value, context) => {
+    // The public figures form a funnel: each stage cannot exceed the one before it.
+    for (let index = 1; index < PUBLIC_PROGRESS_METRICS.length; index += 1) {
+      const previous = PUBLIC_PROGRESS_METRICS[index - 1];
+      const current = PUBLIC_PROGRESS_METRICS[index];
+      if (value[current.key] > value[previous.key]) {
+        context.addIssue({
+          code: "custom",
+          path: [current.key],
+          message: `Cannot be more than ${previous.label} (${value[previous.key]}).`,
+        });
+      }
+    }
+  });
 
 export async function publishPublicProgressAction(
   _previousState: PublishPublicProgressActionState,
@@ -34,9 +50,14 @@ export async function publishPublicProgressAction(
   });
 
   if (!validation.success) {
+    const isFunnelError = validation.error.issues.some(
+      (issue) => issue.code === "custom",
+    );
     return {
       status: "error",
-      message: "Enter all six statistics as whole numbers of zero or more.",
+      message: isFunnelError
+        ? "Each statistic must be less than or equal to the one before it."
+        : "Enter all six statistics as whole numbers of zero or more.",
       errors: validation.error.flatten().fieldErrors,
     };
   }

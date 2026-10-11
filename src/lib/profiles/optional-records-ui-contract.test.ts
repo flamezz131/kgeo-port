@@ -120,8 +120,9 @@ test("runtime validation checks UUID ownership enums dates timestamps IDs and to
 });
 
 test("forms expose optional add edit cancel and confirmed delete workflows", () => {
-  assert.match(componentSource, /Section 5 of 6 · Optional/);
-  assert.match(componentSource, /Section 3 of 6 · Optional/);
+  assert.match(componentSource, /id="student-exams-heading">Study Abroad Exams</);
+  assert.match(componentSource, /id="student-achievements-heading">Achievements</);
+  assert.doesNotMatch(componentSource, /Section \d of \d/);
   assert.match(componentSource, /Add exam attempt/);
   assert.match(componentSource, /Save exam changes/);
   assert.match(componentSource, /Add achievement/);

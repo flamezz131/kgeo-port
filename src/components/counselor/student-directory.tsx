@@ -93,7 +93,6 @@ export function StudentDirectoryFilters({
     >
       <div className="directory-section-heading">
         <div>
-          <span className="eyebrow">Directory controls</span>
           <h2 id="directory-filter-heading">Search and filter</h2>
         </div>
         {canClearFilters && (
@@ -331,7 +330,6 @@ function DirectorySummary({ result }: { result: StudentDirectoryReadyResult }) {
     <section aria-labelledby="directory-summary-heading">
       <div className="directory-section-heading">
         <div>
-          <span className="eyebrow">Directory summary</span>
           <h2 id="directory-summary-heading">Student overview</h2>
         </div>
         <p>Page-level cards use only the students visible below.</p>
@@ -560,7 +558,6 @@ export function StudentDirectoryResults({
           >
             <div className="directory-section-heading">
               <div>
-                <span className="eyebrow">Matching students</span>
                 <h2 id="directory-results-heading">Directory results</h2>
               </div>
             </div>

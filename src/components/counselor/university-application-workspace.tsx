@@ -102,7 +102,6 @@ function WorkspaceMetrics({
     <section aria-labelledby="application-workspace-metrics-heading">
       <div className="application-workspace-section-heading">
         <div>
-          <span className="eyebrow">Operational overview</span>
           <h2 id="application-workspace-metrics-heading">Application metrics</h2>
         </div>
         <span className="application-workspace-scope-badge">
@@ -171,7 +170,6 @@ function WorkspaceFilters({
     >
       <div className="application-workspace-section-heading">
         <div>
-          <span className="eyebrow">Workspace controls</span>
           <h2 id="application-workspace-filter-heading">Search and filter</h2>
         </div>
         {canClear && (
@@ -612,7 +610,6 @@ function WorkspaceResults({
     <section aria-labelledby="application-workspace-results-heading" className="application-workspace-results">
       <div className="application-workspace-results-summary">
         <div>
-          <span className="eyebrow">Filtered workspace</span>
           <h2 id="application-workspace-results-heading">Applications</h2>
         </div>
         <p role="status">
@@ -655,7 +652,6 @@ export function CounselorUniversityApplicationWorkspace({
     <section className="counselor-page application-workspace-page">
       <header className="counselor-page-header">
         <div>
-          <span className="eyebrow">Counselor operations</span>
           <h1>Applications</h1>
           <p className="muted">
             Review university applications across students and open Student 360

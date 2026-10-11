@@ -4,7 +4,7 @@ import { PrIntakeWizard } from "./PrIntakeWizard";
 import { loadStudentContextForPR } from "@/lib/recommendations/loadStudentContext";
 
 export const metadata: Metadata = {
-  title: "Personalized Roadmap Intake | K-GEO",
+  title: "Personalized Roadmap Intake",
 };
 
 export default async function PrIntakePage() {

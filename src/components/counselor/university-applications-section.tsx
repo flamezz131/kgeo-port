@@ -81,7 +81,6 @@ type HistoryState =
 
 const dialogContent = {
   create: {
-    eyebrow: "New application",
     title: "Add university application",
     description:
       "Record the university and programme being considered. New applications begin in Planning status.",
@@ -89,7 +88,6 @@ const dialogContent = {
     pending: "Adding application\u2026",
   },
   details: {
-    eyebrow: "Application details",
     title: "Edit application details",
     description:
       "Update only the approved university, programme, intake, reference, portal and deadline fields.",
@@ -97,7 +95,6 @@ const dialogContent = {
     pending: "Saving application details\u2026",
   },
   status: {
-    eyebrow: "Lifecycle update",
     title: "Change application status",
     description:
       "Choose one permitted next status. PostgreSQL remains authoritative for the transition.",
@@ -105,7 +102,6 @@ const dialogContent = {
     pending: "Changing application status\u2026",
   },
   primary: {
-    eyebrow: "Primary application",
     title: "Set this as the primary application?",
     description:
       "The current primary application, if any, will be changed automatically. Both changes remain in institutional audit history.",
@@ -113,7 +109,6 @@ const dialogContent = {
     pending: "Changing primary application\u2026",
   },
   archive: {
-    eyebrow: "Retained record",
     title: "Archive this university application?",
     description:
       "The application will be removed from the normal active list, but the record and complete history will be retained. This action does not withdraw or close the application automatically.",
@@ -1034,9 +1029,6 @@ export function UniversityApplicationsSection({
         className="student-360-section university-applications-section"
       >
         <header className="student-360-section-heading">
-          <span className="eyebrow">
-            Counselor-managed institutional records
-          </span>
           <h2 id="student-360-university-applications">
             University applications
           </h2>
@@ -1066,9 +1058,6 @@ export function UniversityApplicationsSection({
     >
       <header className="student-360-section-heading university-applications-heading">
         <div>
-          <span className="eyebrow">
-            Counselor-managed institutional records
-          </span>
           <h2 id="student-360-university-applications">
             University applications
           </h2>
@@ -1207,7 +1196,6 @@ export function UniversityApplicationsSection({
               />
             )}
             <div>
-              <span className="eyebrow">{content.eyebrow}</span>
               <h3
                 id={`${prefix}-title`}
                 ref={mutationHeadingRef}
@@ -1304,7 +1292,6 @@ export function UniversityApplicationsSection({
       >
         <div className="university-application-history-content">
           <header>
-            <span className="eyebrow">Institutional audit history</span>
             <h3
               id="university-application-history-title"
               ref={historyHeadingRef}

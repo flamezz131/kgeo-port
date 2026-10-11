@@ -52,11 +52,22 @@ const PANEL_TITLE = "text-[var(--ink)]";
 
 function PanelSection({
   children,
+  flat = false,
   title,
 }: {
   children: React.ReactNode;
+  /** Sit directly on the page, separated from the previous section by a hairline. */
+  flat?: boolean;
   title: string;
 }) {
+  if (flat) {
+    return (
+      <section className="border-t border-[var(--line)] pt-7 first:border-t-0 first:pt-0">
+        <h3 className={PANEL_TITLE}>{title}</h3>
+        {children}
+      </section>
+    );
+  }
   return (
     <Panel>
       <h3 className={PANEL_TITLE}>{title}</h3>
@@ -205,7 +216,6 @@ export function CounselorStudentWorkspaceOverview({
     <section>
       <SectionHeader
         description="A concise view of the Student's profile, goals and current higher-studies journey."
-        eyebrow="Case summary"
         title="Overview"
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -245,11 +255,10 @@ export function CounselorStudentWorkspaceProfile({
     <section>
       <SectionHeader
         description="Read-only information supplied by the Student."
-        eyebrow="Student-provided facts"
         title="Profile"
       />
-      <div className="flex flex-col gap-5">
-        <PanelSection title="Personal / College Information">
+      <div className="flex flex-col gap-7">
+        <PanelSection flat title="Personal / College Information">
           <DefinitionList
             values={[
               { label: "Name", value: identity.full_name ?? "Not provided" },
@@ -279,7 +288,7 @@ export function CounselorStudentWorkspaceProfile({
           />
         </PanelSection>
 
-        <PanelSection title="Academic Portfolio">
+        <PanelSection flat title="Academic Portfolio">
           <DefinitionList
             values={[
               {
@@ -317,7 +326,7 @@ export function CounselorStudentWorkspaceProfile({
           />
         </PanelSection>
 
-        <PanelSection title="Higher Studies Preferences">
+        <PanelSection flat title="Higher Studies Preferences">
           {preference ? (
             <DefinitionList
               values={[
@@ -415,7 +424,10 @@ export function CounselorStudentWorkspaceTests({
   profileContext?: boolean;
 }) {
   return (
-    <PanelSection title={profileContext ? "Study Abroad Exams" : "Recorded Tests"}>
+    <PanelSection
+      flat={profileContext}
+      title={profileContext ? "Study Abroad Exams" : "Recorded Tests"}
+    >
       {result.testScores.length === 0 ? (
         <p className="mt-3 text-sm text-[var(--muted)]">
           No test scores recorded.
@@ -424,7 +436,7 @@ export function CounselorStudentWorkspaceTests({
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {result.testScores.map((score) => (
             <article
-              className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4"
+              className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4"
               key={score.id}
             >
               <header className="flex items-start justify-between gap-3">
@@ -465,7 +477,7 @@ export function CounselorStudentWorkspaceAchievements({
 }) {
   return (
     <section>
-      <SectionHeader eyebrow="Student-provided experience" title="Achievements" />
+      <SectionHeader title="Achievements" />
       {result.achievements.length === 0 ? (
         <StateBlock title="No achievements added." />
       ) : (
@@ -586,7 +598,6 @@ export function CounselorStudentWorkspaceAdvisory({
     <section>
       <SectionHeader
         description="Consultations, private follow-up work, Journey Progress and parent-safe Semester Summaries."
-        eyebrow="Counselor-managed journey"
         title="Advisory"
       />
       <div className="flex flex-col gap-5">
@@ -643,7 +654,6 @@ export function CounselorStudentWorkspaceDocuments({
     <section>
       <SectionHeader
         description="Progression evidence and university application documents only."
-        eyebrow="Approved document systems"
         title="Documents"
       />
       <div className="flex flex-col gap-5">
@@ -735,7 +745,6 @@ export function CounselorStudentApplicationDetail({
       <div className="mt-5">
         <SectionHeader
           description={application.programmeName}
-          eyebrow="Application detail"
           title={application.universityName}
         />
       </div>
@@ -779,7 +788,7 @@ export function CounselorStudentWorkspacePlaceholder({
 }) {
   return (
     <section>
-      <SectionHeader eyebrow="Student Workspace" title={title} />
+      <SectionHeader title={title} />
       <StateBlock description={supportingText} title={message} />
     </section>
   );

@@ -16,7 +16,9 @@ export function PublicProgressSection({
   progress: KgeoPublicProgressSnapshot | null;
 }) {
   return (
-    <section id="kgeo-progress">
+    // The offset keeps the heading clear of the fixed top bar when a nav link
+    // scrolls here.
+    <section className="scroll-mt-24" id="kgeo-progress">
       <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-12 lg:mb-16">
         <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-[#1D4ED8] text-[0.7rem] font-extrabold uppercase tracking-[0.15em] mb-6">
           <Globe size={14} strokeWidth={2.5} />
@@ -33,7 +35,7 @@ export function PublicProgressSection({
       {progress ? (
         <>
           <PublicProgressFunnel values={progress.values} />
-          <p className="mt-10 text-center text-[0.8rem] font-medium text-slate-400">
+          <p className="mt-10 text-center text-[0.8rem] font-medium text-slate-500">
             Last updated{" "}
             <time dateTime={progress.publishedAt} className="text-slate-500 font-semibold">
               {formatPublicProgressTimestamp(progress.publishedAt)}

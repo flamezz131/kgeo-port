@@ -13,20 +13,16 @@ export default function StudentDashboardLoading() {
   return (
     <div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
       <div role="status">
-        <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-          Student dashboard
-        </span>
-        <h1 className="mt-2 text-[#0B1F3A]">Loading your dashboard&hellip;</h1>
+        <h1 className="text-[#0B1F3A]">Loading your dashboard&hellip;</h1>
         <p className="mt-2 text-slate-500">
           Preparing your profile, applications and consultations.
         </p>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-        <div className="flex gap-7 rounded-2xl border border-[#E2E8F0] bg-white p-6">
+        <div className="flex items-center gap-9 rounded-3xl border border-[#E2E8F0] bg-white p-8 sm:p-10">
           <Block className="size-28 shrink-0 rounded-full" />
           <div className="flex flex-1 flex-col gap-3">
-            <Block className="h-3 w-32" />
             <Block className="h-6 w-2/3" />
             <Block className="h-3 w-full" />
             <Block className="h-3 w-4/5" />

@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ApplicationJourneySection } from "@/components/counselor/application-journey-section";
 import { CounselorStudentApplicationDetail } from "@/components/counselor/student-workspace-sections";
 import { loadCounselorApplicationJourney } from "@/lib/counselor/application-journey-server";
 import { isStudent360StudentId } from "@/lib/counselor/student-profile";
 import { loadCounselorUniversityApplications } from "@/lib/counselor/university-application-server";
+
+export const metadata: Metadata = {
+  title: "Student Workspace application",
+  referrer: "no-referrer",
+  robots: { index: false, follow: false },
+};
 
 export default async function CounselorStudentApplicationDetailPage({
   params,

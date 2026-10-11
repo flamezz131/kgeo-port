@@ -18,7 +18,9 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 export const controlClass =
   "w-full rounded-[0.8rem] border border-[var(--line)] bg-white px-4 py-[0.9rem] text-[var(--ink)] outline-none " +
   "focus:border-[var(--brand-600)] focus:shadow-[var(--focus-ring)] " +
-  "read-only:cursor-not-allowed read-only:bg-[var(--surface-3)] read-only:text-[var(--muted)]";
+  // The attribute, not `:read-only`: that pseudo-class also matches every
+  // <select>, which made dropdowns look and feel disabled.
+  "[&[readonly]]:cursor-not-allowed [&[readonly]]:bg-[var(--surface-3)] [&[readonly]]:text-[var(--muted)]";
 
 /** Adds the textarea-specific sizing on top of `controlClass`. */
 export const textareaClass = `${controlClass} min-h-[130px] resize-y`;
@@ -95,6 +97,23 @@ export function FormSuccess({ children }: { children: ReactNode }) {
 }
 
 /**
+ * The section styling without the card around it: heading, field, focus and
+ * button treatment only. The student profile uses this so its sections sit
+ * directly on the page.
+ */
+export const sectionPlainClass =
+  "[&>header_h2]:mx-0 [&>header_h2]:mb-0 [&>header_h2]:mt-[0.45rem] [&>header_h2]:text-[clamp(1.6rem,3vw,2.35rem)] [&>header_h2]:leading-[1.15] [&>header_h2]:tracking-[-0.035em] [&>header_h2]:text-[var(--ink)] " +
+  "[&>header_p]:leading-[1.65] [&>header_p]:text-[var(--muted)] " +
+  "[&_.field_input]:border-[#dce6f2] [&_.field_select]:border-[#dce6f2] [&_.field_textarea]:border-[#dce6f2] " +
+  "[&_.field_input:focus]:border-[var(--brand-600)] [&_.field_select:focus]:border-[var(--brand-600)] [&_.field_textarea:focus]:border-[var(--brand-600)] " +
+  "[&_.field_input:focus]:shadow-[0_0_0_3px_rgba(29,78,216,0.12)] [&_.field_select:focus]:shadow-[0_0_0_3px_rgba(29,78,216,0.12)] [&_.field_textarea:focus]:shadow-[0_0_0_3px_rgba(29,78,216,0.12)] " +
+  "[&_.button]:border-[var(--brand-600)] [&_.button]:bg-[var(--brand-600)] [&_.button:hover]:bg-[var(--ink)] " +
+  "[&_.button-secondary]:bg-transparent [&_.button-secondary]:text-[var(--brand-600)] [&_.button-secondary:hover]:bg-[var(--brand-50)] " +
+  "[&_.button-danger]:border-[#b42318] [&_.button-danger]:bg-[#b42318] [&_.button-danger]:text-white " +
+  "[&_.button-danger:hover]:border-[#7f1d1d] [&_.button-danger:hover]:bg-[#7f1d1d] " +
+  "[&_fieldset:disabled]:opacity-[0.68] motion-reduce:[&_.button]:transition-none";
+
+/**
  * The large rounded card each profile section sits in. Replaces
  * `.profile-section-card`.
  *
@@ -108,16 +127,7 @@ export function FormSuccess({ children }: { children: ReactNode }) {
 export const sectionCardClass =
   "rounded-[1.25rem] border border-[#dce6f2] bg-white p-[clamp(1.25rem,4vw,2.5rem)] " +
   "shadow-[0_16px_45px_rgba(11,31,58,0.07)] " +
-  "[&>header_h2]:mx-0 [&>header_h2]:mb-0 [&>header_h2]:mt-[0.45rem] [&>header_h2]:text-[clamp(1.6rem,3vw,2.35rem)] [&>header_h2]:leading-[1.15] [&>header_h2]:tracking-[-0.035em] [&>header_h2]:text-[var(--ink)] " +
-  "[&>header_p]:leading-[1.65] [&>header_p]:text-[var(--muted)] " +
-  "[&_.field_input]:border-[#dce6f2] [&_.field_select]:border-[#dce6f2] [&_.field_textarea]:border-[#dce6f2] " +
-  "[&_.field_input:focus]:border-[var(--brand-600)] [&_.field_select:focus]:border-[var(--brand-600)] [&_.field_textarea:focus]:border-[var(--brand-600)] " +
-  "[&_.field_input:focus]:shadow-[0_0_0_3px_rgba(29,78,216,0.12)] [&_.field_select:focus]:shadow-[0_0_0_3px_rgba(29,78,216,0.12)] [&_.field_textarea:focus]:shadow-[0_0_0_3px_rgba(29,78,216,0.12)] " +
-  "[&_.button]:border-[var(--brand-600)] [&_.button]:bg-[var(--brand-600)] [&_.button:hover]:bg-[var(--ink)] " +
-  "[&_.button-secondary]:bg-transparent [&_.button-secondary]:text-[var(--brand-600)] [&_.button-secondary:hover]:bg-[var(--brand-50)] " +
-  "[&_.button-danger]:border-[#b42318] [&_.button-danger]:bg-[#b42318] [&_.button-danger]:text-white " +
-  "[&_.button-danger:hover]:border-[#7f1d1d] [&_.button-danger:hover]:bg-[#7f1d1d] " +
-  "[&_fieldset:disabled]:opacity-[0.68] motion-reduce:[&_.button]:transition-none";
+  sectionPlainClass;
 
 export function SectionCard({
   className = "",

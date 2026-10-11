@@ -152,14 +152,39 @@ body {
    without an explicit rule rendered as body copy. These element selectors
    restore the scale at the lowest possible specificity, so every existing
    class-based heading rule still wins.
+
+   The default heading and link colours live in @layer base: unlayered rules
+   beat every Tailwind v4 utility regardless of specificity, which previously
+   overrode classes such as text-white on headings and links.
    ------------------------------------------------------------------------- */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--ink);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Tailwind's reset zeroes every margin, which removes the browser default
+     that centres a modal <dialog> and pins it to the top-left corner. */
+  dialog {
+    margin: auto;
+  }
+}
+
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  color: var(--ink);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.22;
@@ -192,11 +217,6 @@ h5,
 h6 {
   font-size: 0.8125rem;
   letter-spacing: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
 }
 
 button,
@@ -870,6 +890,8 @@ textarea:focus-visible,
 
 .director-oversight-filters label {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 0.35rem;
   color: #334155;
   font-size: 0.78rem;
@@ -878,6 +900,7 @@ textarea:focus-visible,
 
 .director-oversight-filters input,
 .director-oversight-filters select {
+  min-width: 0;
   min-height: 2.6rem;
   border: 1px solid #cbd5e1;
   border-radius: 0.65rem;
@@ -1053,7 +1076,7 @@ textarea:focus-visible,
 @media (max-width: 760px) {
   .director-oversight-filters,
   .director-oversight-summary {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .director-oversight-table-wrapper {
@@ -1062,6 +1085,8 @@ textarea:focus-visible,
 
   .director-oversight-mobile {
     display: grid;
+    /* Cards never grow past the page on narrow phones. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
 
@@ -1074,9 +1099,11 @@ textarea:focus-visible,
 
   .director-oversight-mobile article > header {
     display: flex;
+    /* The reference and its status badge stack when they do not fit on one row. */
+    flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.5rem 1rem;
   }
 
   .director-oversight-mobile h3,
@@ -1107,7 +1134,7 @@ textarea:focus-visible,
 
 @media (max-width: 480px) {
   .director-oversight-mobile dl {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }}
 
 .application-journey-section {
@@ -1278,15 +1305,12 @@ textarea:focus-visible,
 
 /* Counselor Student Workspace */
 /* The portal shell already supplies the content width and page padding; this
-   used to add a second,
+   used to add a second, narrower 1180px cap plus its own padding. That wrapper
+   rule is gone: the workspace layout now sets its own column and gap.
 
-narrower 1180px cap plus its own padding {
-  display: grid;
-  gap: 1.5rem;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
+   This comment was previously left unterminated, which silently disabled every
+   rule down to "Counselor applications workspace" (eligibility, section
+   headers, Director assignment dialogs). Keep it closed. */
 
 .student-workspace-section-header h2 {
   color: #0f172a;
@@ -1801,6 +1825,9 @@ narrower 1180px cap plus its own padding {
   background: #eef4ff;
   color: #284978;
   text-align: right;
+  /* A full sentence, so it must wrap on narrow screens instead of widening the page. */
+  max-width: 100%;
+  white-space: normal;
 }
 
 .application-workspace-metrics {
@@ -3040,13 +3067,19 @@ narrower 1180px cap plus its own padding {
   list-style: none;
 }
 
-.student-360-tag-list li {
+.student-360-tag-list li,
+.student-360-tag-list > a {
   border-radius: 999px;
   background: #eff6ff;
   color: #1e40af;
   font-size: 0.78rem;
   font-weight: 700;
   padding: 0.4rem 0.65rem;
+}
+
+/* The Director Student 360 renders its section links directly as pills. */
+.student-360-tag-list > a:hover {
+  background: #dbeafe;
 }
 
 .student-360-empty {
@@ -3323,7 +3356,7 @@ narrower 1180px cap plus its own padding {
 }
 
 .profile-completion-card h2 {
-  margin: 0.4rem 0 0;
+  margin: 0;
   color: #0b1f3a;
   font-size: 1.35rem;
   line-height: 1.2;
@@ -3369,16 +3402,83 @@ narrower 1180px cap plus its own padding {
   line-height: 1.45;
 }
 
-.profile-check-list li::marker {
-  color: #94a3b8;
+.profile-check-list {
+  gap: 0.4rem;
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.82rem;
 }
 
-.profile-check-list li[data-complete="true"]::marker {
+.profile-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.profile-check-icon {
+  flex: none;
+  color: #dc2626;
+}
+
+[data-complete="true"] > .profile-check-row > .profile-check-icon {
   color: #15803d;
+}
+
+.profile-check-missing {
+  margin: 0.1rem 0 0.15rem 1.35rem;
+  color: #64748b;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.profile-check-missing button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #1d4ed8;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .profile-workspace {
   min-width: 0;
+}
+
+/* Keep two-column rows level: a field whose neighbour has a hint must not
+   stretch to fill the taller cell, and inputs and selects share one height. */
+.profile-workspace .field,
+.consultation-form .field {
+  align-content: start;
+}
+
+:is(.profile-workspace, .consultation-form)
+  .field
+  :is(input:not([type="radio"], [type="checkbox"]), select) {
+  min-height: 3.5rem;
+}
+
+/* Student consultation booking form: two columns on laptops, one on phones.
+   The radio group and the date/time picker always span the full width. */
+@media (min-width: 1024px) {
+  .consultation-form .form-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.25rem;
+  }
+
+  .consultation-form .form-fields > fieldset,
+  .consultation-form .form-fields > section {
+    grid-column: 1 / -1;
+  }
+
+  .consultation-form > .button {
+    justify-self: end;
+    min-width: 14rem;
+  }
 }
 
 .profile-save-notice {
@@ -3387,7 +3487,7 @@ narrower 1180px cap plus its own padding {
 
 .profile-stepper {
   overflow-x: auto;
-  margin-bottom: 1rem;
+  margin-bottom: 1.75rem;
   padding-bottom: 0.25rem;
 }
 
@@ -3568,15 +3668,11 @@ narrower 1180px cap plus its own padding {
   display: grid;
   gap: 1.15rem;
   min-width: 0;
-  margin: 0 0 2rem;
-  border-color: #bfdbfe;
-  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 48%);
 }
 
 .student-university-applications-heading h2 {
-  margin: 0.35rem 0 0;
+  margin: 0;
   color: #0b1f3a;
-  font-size: clamp(1.45rem, 3vw, 2rem);
 }
 
 .student-university-applications-heading p {
@@ -3731,6 +3827,19 @@ narrower 1180px cap plus its own padding {
   line-height: 1.55;
 }
 
+/* Matches the dashed "No upcoming consultations" empty state on the dashboard */
+.student-university-application-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  padding: 1.25rem 1rem;
+}
+
+.student-university-application-empty p {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
 .student-university-application-skeletons {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3819,12 +3928,11 @@ narrower 1180px cap plus its own padding {
   margin: 0;
 }
 
+/* Divided regions of the section card, not boxes nested inside it. */
 .optional-record-editor,
 .optional-record-history {
-  border: 1px solid #dce6f2;
-  border-radius: 1rem;
-  background: #f8fbff;
-  padding: clamp(1rem, 3vw, 1.5rem);
+  border-top: 1px solid #dce6f2;
+  padding-top: 1.5rem;
 }
 
 .optional-record-editor h3,
@@ -3833,10 +3941,13 @@ narrower 1180px cap plus its own padding {
   color: #0b1f3a;
 }
 
+/* The edit form keeps its box: it marks the record being changed. */
 .optional-record-edit {
   margin-top: 1rem;
-  border-color: #93c5fd;
+  border: 1px solid #93c5fd;
+  border-radius: 1rem;
   background: #eff6ff;
+  padding: clamp(1rem, 3vw, 1.5rem);
 }
 
 .optional-record-field-grid {
@@ -5876,6 +5987,8 @@ narrower 1180px cap plus its own padding {
 /* Phase A1.2 Director operational overview */
 .director-page {
   display: grid;
+  /* Single column that cannot be stretched wider than the page by its content. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.5rem;
 }
 
@@ -6529,6 +6642,8 @@ narrower 1180px cap plus its own padding {
 
 .parent-report-workspace {
   display: grid;
+  /* One column that never grows past the page; wide rows scroll themselves. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
 }
 
@@ -6544,6 +6659,11 @@ narrower 1180px cap plus its own padding {
   gap: 1rem;
 }
 
+.parent-report-create {
+  /* Stack the form under the intro when both do not fit side by side. */
+  flex-wrap: wrap;
+}
+
 .parent-report-create > form {
   min-width: min(100%, 25rem);
 }
@@ -6551,6 +6671,13 @@ narrower 1180px cap plus its own padding {
 .parent-report-inline-form input,
 .parent-report-inline-actions input {
   flex: 1;
+  /* Let the field shrink on phones instead of widening the page. */
+  min-width: 0;
+}
+
+.parent-report-inline-form,
+.parent-report-inline-actions {
+  flex-wrap: wrap;
 }
 
 .parent-report-version-nav {
@@ -6632,7 +6759,7 @@ narrower 1180px cap plus its own padding {
 .parent-report-director-list {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
 }
 
 .parent-report-attachment-controls > div,
@@ -6644,10 +6771,14 @@ narrower 1180px cap plus its own padding {
 
 .parent-report-attachment-controls form {
   display: grid;
+  /* A file input's natural width must not widen the form on phones. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.65rem;
 }
 
 .parent-report-director-list a {
+  min-width: 0;
+  overflow-wrap: anywhere;
   align-items: flex-start;
   color: inherit;
   flex-direction: column;
@@ -7426,7 +7557,7 @@ a.directory-student-card:hover {
 
 .director-parent-reports .parent-report-director-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
   gap: 1rem;
 }
 
@@ -8015,3 +8146,338 @@ a.directory-student-card:hover {
   .readiness-history summary {
     grid-template-columns: 1fr;
   }}
+
+/* Fill of the active indicator in the home hero photo carousel. */
+@keyframes hero-carousel-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---- Flat section wrappers --------------------------------------------- */
+/* Staff-portal sections that only group a heading with their own cards,
+   tables or form fields sit directly on the page instead of inside another
+   box. Record cards, KPI tiles, tables, empty states and alerts keep theirs. */
+:root
+  :is(
+    .student-360-section,
+    .counselor-section-card,
+    .director-section-card,
+    .director-assignment-panel,
+    .directory-results,
+    .directory-filter-panel,
+    .follow-up-workload-results,
+    .follow-up-workload-panel,
+    .application-workspace-results,
+    .application-workspace-filter-panel,
+    .eligibility-workspace,
+    .parent-report-workspace,
+    .parent-report-create,
+    .parent-report-editor,
+    .parent-report-attachments,
+    .parent-report-history,
+    .parent-report-source,
+    .director-oversight-filters,
+    .counselor-date-controls
+  ) {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  padding: 0.5rem 0;
+}
+
+/* The long parent-report blocks follow one another without a box, so a
+   hairline keeps them apart. */
+:root
+  :is(
+    .parent-report-editor,
+    .parent-report-attachments,
+    .parent-report-history,
+    .parent-report-source
+  ) {
+  border-top: 1px solid var(--line);
+  padding-top: 1.5rem;
+}
+
+/* Tiles that were tinted to stand out on a white card now sit on the page
+   background, so they take a white fill and a hairline instead. */
+:root
+  :is(
+    .parent-report-attachment-controls > div,
+    .parent-report-attachment-controls > form,
+    .parent-report-history li
+  ) {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+/* Counselor student workspace, Eligibility tab: the context, current
+   assessment, form and history sit on the page, parted by hairlines. */
+:root .eligibility-workspace {
+  gap: 1.75rem;
+}
+
+:root
+  :is(
+    .eligibility-context,
+    .eligibility-current-card,
+    .eligibility-form,
+    .eligibility-history
+  ) {
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  padding: 1.75rem 0 0;
+}
+
+/* The first block follows the tab heading directly, so it needs no hairline. */
+:root .eligibility-workspace > header + :is(.eligibility-context, .eligibility-current-card) {
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* Fact cells and form fields drop their tile fill; rows are told apart by
+   the hairline above each one, as on the Profile tab. */
+:root
+  .eligibility-workspace
+  :is(.student-workspace-definition-list > div, .eligibility-form-grid > div) {
+  border-radius: 0;
+  background: none;
+}
+
+:root .eligibility-workspace .eligibility-test-context li {
+  background: var(--surface);
+}
+
+:root .eligibility-workspace .student-workspace-empty {
+  padding: 0.75rem 1rem;
+}
+
+/* Parent report, "Verified information captured for this version": a plain
+   grid of label/value pairs, four across on wide screens and two on phones,
+   each row marked by a hairline instead of a box per value. */
+:root .parent-report-source dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1.5rem;
+  margin: 1rem 0 0;
+}
+
+:root .parent-report-source dl div {
+  min-width: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  padding: 0.75rem 0;
+}
+
+:root .parent-report-source dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+:root .parent-report-source dd {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 900px) {
+  :root .parent-report-source dl {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Parent report audit history: a disclosure that stays closed until asked. */
+.parent-report-history summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.parent-report-history summary::-webkit-details-marker {
+  display: none;
+}
+
+.parent-report-history summary:focus-visible {
+  outline: 2px solid var(--brand-600);
+  outline-offset: 4px;
+}
+
+.parent-report-history summary h2 {
+  margin: 0;
+}
+
+.parent-report-history summary svg {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--muted);
+  transition: transform 200ms ease;
+}
+
+.parent-report-history details[open] summary svg {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parent-report-history summary svg {
+    transition: none;
+  }
+}
+
+/* ---- Student directory: compact results --------------------------------- */
+/* The full table only fits very wide screens. Everywhere else each student
+   was a tall card, which made a 25-per-page list a long scroll. The same
+   markup is laid out as a short card on phones, a two-line row on small
+   laptops and a single row on larger ones. */
+:root .directory-mobile-list {
+  gap: 0.5rem;
+}
+
+:root .directory-student-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head"
+    "badge meter"
+    "facts link";
+  align-items: center;
+  gap: 0.55rem 0.75rem;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+}
+
+:root .directory-student-card header {
+  grid-area: head;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-width: 0;
+  text-align: left;
+}
+
+:root .directory-student-card header > div {
+  min-width: 0;
+}
+
+:root .directory-student-card h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+:root .directory-student-card header p {
+  margin: 0.1rem 0 0;
+  font-size: 0.76rem;
+}
+
+:root .directory-student-card .directory-card-badges {
+  grid-area: badge;
+  margin: 0;
+}
+
+:root .directory-student-card .directory-completion {
+  grid-area: meter;
+  width: 6.5rem;
+}
+
+:root .directory-student-card dl {
+  grid-area: facts;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem 0.75rem;
+  margin: 0;
+}
+
+/* Department and last update are one tap away in the profile; on a phone
+   they are dropped so a student fits in a few lines. */
+:root .directory-student-card dl > div:nth-child(3),
+:root .directory-student-card dl > div:nth-child(5) {
+  display: none;
+}
+
+:root .directory-student-card dt {
+  font-size: 0.66rem;
+}
+
+:root .directory-student-card dd {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+:root .directory-student-card .directory-card-profile-link {
+  grid-area: link;
+  justify-self: end;
+  width: auto;
+  white-space: nowrap;
+}
+
+/* Small laptops and tablets: identity and actions on one line, facts below. */
+@container portal (min-width: 40rem) {
+  :root .directory-student-card {
+    grid-template-columns: minmax(0, 1fr) auto minmax(6rem, 8rem) auto;
+    grid-template-areas:
+      "head badge meter link"
+      "facts facts facts facts";
+    gap: 0.5rem 1.25rem;
+    padding: 0.65rem 1rem;
+  }
+
+  :root .directory-student-card .directory-completion {
+    width: auto;
+  }
+
+  :root .directory-student-card dl {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  :root .directory-student-card dl > div:nth-child(3),
+  :root .directory-student-card dl > div:nth-child(5) {
+    display: block;
+  }
+
+  :root .directory-student-card dd {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+}
+
+/* Larger laptops: everything on one row. */
+@container portal (min-width: 64rem) {
+  :root .directory-student-card {
+    grid-template-columns:
+      minmax(13rem, 1.4fr) auto minmax(0, 2.6fr) minmax(5.5rem, 0.55fr)
+      auto;
+    grid-template-areas: "head badge facts meter link";
+    gap: 0.25rem 1.1rem;
+    padding: 0.55rem 1rem;
+  }
+
+  :root .directory-student-card dl {
+    gap: 0.75rem;
+  }
+
+  :root .directory-student-card dd {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+}

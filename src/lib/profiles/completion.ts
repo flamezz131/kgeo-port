@@ -1,9 +1,85 @@
 import type {
   ProfileCompletionPresentation,
+  ProfileRequirementItem,
+  ProfileRequirementPreferenceFields,
+  ProfileRequirementProfileFields,
+  ProfileRequirementSection,
   StudentProfileCompletionRow,
 } from "@/lib/profiles/types";
 
 const TOTAL_ESSENTIAL_FIELDS = 11;
+
+// Mirrors the eleven essential fields of the student_profile_completion view.
+// The view stays authoritative for each section's status: a section it reports
+// complete has every item ticked, whatever the locally loaded values say.
+export function buildProfileRequirementChecklist(
+  completion: Pick<
+    ProfileCompletionPresentation,
+    "academicComplete" | "preferencesComplete" | "readyForCounseling"
+  >,
+  profile: ProfileRequirementProfileFields | null,
+  preferences: ProfileRequirementPreferenceFields | null,
+): ProfileRequirementSection[] {
+  const { academicComplete, preferencesComplete, readyForCounseling } =
+    completion;
+  const provided = (value: string | number | null | undefined) =>
+    value !== null && value !== undefined;
+
+  const academicItems: ProfileRequirementItem[] = [
+    { label: "Roll number", complete: provided(profile?.roll_number), step: "identity" },
+    { label: "Personal email", complete: provided(profile?.personal_email), step: "identity" },
+    { label: "Mobile number", complete: provided(profile?.mobile_number), step: "identity" },
+    { label: "College", complete: provided(profile?.college), step: "identity" },
+    { label: "Course", complete: provided(profile?.course), step: "identity" },
+    { label: "Department", complete: provided(profile?.department), step: "identity" },
+    { label: "Graduation year", complete: provided(profile?.graduation_year), step: "identity" },
+    {
+      label: "CGPA",
+      complete: provided(profile?.cgpa) || profile?.cgpa_unavailable === true,
+      step: "academics",
+    },
+  ];
+  const preferenceItems: ProfileRequirementItem[] = [
+    {
+      label: "Higher-studies interest",
+      complete: provided(preferences?.higher_studies_interest),
+      step: "preferences",
+    },
+    {
+      label: "Study level",
+      complete: provided(preferences?.preferred_study_level),
+      step: "preferences",
+    },
+    {
+      label: "Target intake",
+      complete: provided(preferences?.target_intake),
+      step: "preferences",
+    },
+  ];
+  const settle = (items: ProfileRequirementItem[], sectionComplete: boolean) =>
+    sectionComplete ? items.map((item) => ({ ...item, complete: true })) : items;
+
+  return [
+    {
+      id: "academic",
+      label: "Academic section",
+      complete: academicComplete,
+      items: settle(academicItems, academicComplete),
+    },
+    {
+      id: "preferences",
+      label: "Preferences",
+      complete: preferencesComplete,
+      items: settle(preferenceItems, preferencesComplete),
+    },
+    {
+      id: "readiness",
+      label: "Ready for counseling",
+      complete: readyForCounseling,
+      items: [],
+    },
+  ];
+}
 
 function isStudentProfileCompletionRow(
   value: unknown,

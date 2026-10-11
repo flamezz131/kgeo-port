@@ -44,9 +44,12 @@ export async function updateSession(request: NextRequest) {
 
   if (error || !data?.claims.sub) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = pathname.startsWith("/counselor/")
-      ? "/counselor/login"
-      : "/login";
+    loginUrl.pathname =
+      pathname === "/counselor" || pathname.startsWith("/counselor/")
+        ? "/counselor/login"
+        : pathname === "/director" || pathname.startsWith("/director/")
+          ? "/director/login"
+          : "/login";
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }

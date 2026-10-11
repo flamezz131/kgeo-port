@@ -70,7 +70,6 @@ export function CounselorSlotBlocks({
     >
       <div className="counselor-section-heading">
         <div>
-          <span className="eyebrow">Availability controls</span>
           <h2 id="blocked-slots-heading">Blocked Slots</h2>
           <p>Block one future canonical slot. Students never see your reason.</p>
         </div>

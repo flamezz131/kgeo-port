@@ -20,7 +20,7 @@ import {
   validateProfileDocumentType,
 } from "@/lib/student/profile-documents";
 import type { StudentProfileDocument } from "@/types";
-import { sectionCardClass } from "@/components/shell/form-ui";
+import { sectionPlainClass } from "@/components/shell/form-ui";
 
 export function StudentProfileDocuments({
   documents,
@@ -182,9 +182,8 @@ export function StudentProfileDocuments({
   }
 
   return (
-    <section aria-labelledby="profile-documents-heading" className={`${sectionCardClass} mt-6`}>
+    <section aria-labelledby="profile-documents-heading" className={`${sectionPlainClass} border-t border-[#dce6f2] pt-10`}>
       <header>
-        <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Section 6 of 6 · Reusable files</span>
         <h2 id="profile-documents-heading">Documents</h2>
         <p>Upload documents that can be reused during your K-GEO higher-studies journey.</p>
       </header>

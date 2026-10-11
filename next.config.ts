@@ -12,10 +12,34 @@ const nextConfig: NextConfig = {
     root: projectRoot,
   },
   outputFileTracingRoot: projectRoot,
+  // The Parent Report PDF reads its logo from disk at request time, so the
+  // file must be traced into the counselor and director server bundles.
+  outputFileTracingIncludes: {
+    "/counselor/**": ["./src/logo/image.png"],
+    "/director/**": ["./src/logo/image.png"],
+  },
   // Serve <Image> sources straight from /public. In Vercel services mode the
   // /_next/image optimizer endpoint is not provisioned and returns 404.
   images: {
     unoptimized: true,
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // Only this site may frame its pages (clickjacking protection).
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
   },
   experimental: {
     serverActions: {

@@ -21,6 +21,8 @@ import {
   PREFERRED_STUDY_AREA_OPTIONS,
   STUDY_PATHWAY_OPTIONS,
   STUDENT_PLANNING_STAGE_OPTIONS,
+  GRADUATION_YEAR_STORAGE_MAXIMUM,
+  GRADUATION_YEAR_STORAGE_MINIMUM,
   formatOptionalProfileDate,
   getStudentAchievementTypeLabel,
   getStudentExamNameLabel,
@@ -174,7 +176,11 @@ const profileSchema = z
     department: z.string().trim().min(1).max(150),
     current_year: z.number().int().min(1).max(8).nullable(),
     current_semester: z.number().int().min(1).max(16).nullable(),
-    graduation_year: z.number().int().min(2024).max(2040),
+    graduation_year: z
+      .number()
+      .int()
+      .min(GRADUATION_YEAR_STORAGE_MINIMUM)
+      .max(GRADUATION_YEAR_STORAGE_MAXIMUM),
     cgpa: z.number().min(0).nullable(),
     cgpa_scale: z.union([z.literal(4), z.literal(10)]),
     cgpa_unavailable: z.boolean(),

@@ -283,10 +283,10 @@ test("Student 360 keeps the existing six sections and adds counselor-only sectio
     assert.match(profileContract, new RegExp(section));
   }
   assert.match(profileView, /<CounselorPrivateRecords/);
-  assert.match(component, /Section 7/);
+  // The "Section N" labels were removed; the sections are identified by title.
+  assert.doesNotMatch(component, /Section \d/);
   assert.match(component, /COUNSELOR_PRIVATE_RECORD_LABELS\.notes/);
   assert.match(privateRecordsSource, /Private Counselor Notes/);
-  assert.match(component, /Section 8/);
   assert.match(component, /COUNSELOR_PRIVATE_RECORD_LABELS\.followUps/);
   assert.match(privateRecordsSource, /Follow-ups/);
   assert.match(privateRecordsSource, /Internal — not visible to student/);

@@ -84,7 +84,6 @@ function LegacyClosureCard({
       >
         <form action={formAction} aria-busy={isPending} ref={formRef}>
           <header>
-            <span className="eyebrow">Controlled historical resolution</span>
             <h2 id={`legacy-closure-title-${consultation.requestNumber}`}>
               Close Legacy Request
             </h2>
@@ -153,7 +152,6 @@ export function DirectorLegacyConsultationResolution({
     >
       <header className="director-assignment-heading">
         <div>
-          <span className="eyebrow">Controlled historical resolution</span>
           <h2 id="legacy-consultation-resolution-heading">
             Legacy unscheduled requests
           </h2>

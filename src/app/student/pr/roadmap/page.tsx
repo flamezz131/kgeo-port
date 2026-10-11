@@ -10,7 +10,7 @@ import { RoadmapTaskTracker } from "./RoadmapTaskTracker";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "My Personalized Roadmap | K-GEO",
+  title: "My Personalized Roadmap",
 };
 
 // The three recommendation buckets, in display order. Class names are spelled
@@ -228,8 +228,32 @@ export default async function PersonalizedRoadmapPage() {
   const generatedDateStr = new Date(latestRec.generated_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const readinessScore = developmentPlan?.readiness_score || 0;
 
+  // Flag a roadmap that predates the student's latest saved profile details.
+  const [{ data: profileTimestamps }, { data: preferenceTimestamps }] =
+    await Promise.all([
+      supabase
+        .from("student_profiles")
+        .select("updated_at")
+        .eq("student_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("student_preferences")
+        .select("updated_at")
+        .eq("student_id", user.id)
+        .maybeSingle(),
+    ]);
+  const generatedAt = new Date(latestRec.generated_at).getTime();
+  const profileChangedSinceGeneration = [
+    profileTimestamps?.updated_at,
+    preferenceTimestamps?.updated_at,
+  ].some(
+    (updatedAt) =>
+      typeof updatedAt === "string" &&
+      new Date(updatedAt).getTime() > generatedAt,
+  );
+
   return (
-    <div id="roadmap-content" className="space-y-12 print:space-y-8 print:bg-white print:py-0 print:text-black">
+    <div id="roadmap-content" className="space-y-12 [overflow-wrap:anywhere] print:space-y-8 print:bg-white print:py-0 print:text-black">
       
       {/* Print-only PDF Cover Page */}
       <div className="hidden print:block pdf-cover pt-20" style={{ pageBreakAfter: 'always' }}>
@@ -254,7 +278,7 @@ export default async function PersonalizedRoadmapPage() {
       </div>
 
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#DCE6F2] print:hidden">
+      <header className="flex flex-col md:flex-row md:flex-wrap md:items-center justify-between gap-4 pb-6 border-b border-[#DCE6F2] print:hidden">
         <div>
           <h1 className="text-[#0B1F3A] text-3xl font-bold mt-1">
             My Personalized Study-Abroad Roadmap
@@ -277,6 +301,17 @@ export default async function PersonalizedRoadmapPage() {
           </Link>
         </div>
       </header>
+
+      {profileChangedSinceGeneration && (
+        <p
+          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 print:hidden"
+          role="status"
+        >
+          Your profile was updated after this roadmap was generated on{" "}
+          {generatedDateStr}. Use <strong>Update Profile &amp; Regenerate</strong>{" "}
+          to get recommendations that reflect your current details.
+        </p>
+      )}
 
       {/* 0. READINESS OVERVIEW */}
       <section aria-labelledby="readiness-heading" className="space-y-6">

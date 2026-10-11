@@ -72,18 +72,9 @@ function DefinitionGrid({ values }: { values: DetailValue[] }) {
   );
 }
 
-function SectionHeading({
-  id,
-  kicker,
-  title,
-}: {
-  id: string;
-  kicker: string;
-  title: string;
-}) {
+function SectionHeading({ id, title }: { id: string; title: string }) {
   return (
     <header className="student-360-section-heading">
-      <span className="eyebrow">{kicker}</span>
       <h2 id={id}>{title}</h2>
     </header>
   );
@@ -219,7 +210,6 @@ export function CounselorStudentConsultationHistory({
     >
       <SectionHeading
         id="student-360-consultations"
-        kicker="Read-only operational history"
         title={STUDENT_360_SECTION_LABELS.consultations}
       />
 
@@ -352,7 +342,6 @@ export function CounselorStudentProfileView({
 
       <header className="student-360-hero">
         <div className="student-360-hero-main">
-          <span className="eyebrow">Counselor Student 360</span>
           <h1>{displayName}</h1>
           <p>{identity.college_email}</p>
           <div className="student-360-badges">
@@ -433,7 +422,6 @@ export function CounselorStudentProfileView({
       >
         <SectionHeading
           id="student-360-overview"
-          kicker="Identity and contact"
           title={STUDENT_360_SECTION_LABELS.overview}
         />
         <DefinitionGrid
@@ -498,7 +486,6 @@ export function CounselorStudentProfileView({
       >
         <SectionHeading
           id="student-360-academics"
-          kicker="Student-reported results"
           title={STUDENT_360_SECTION_LABELS.academics}
         />
         {profile ? (
@@ -561,7 +548,6 @@ export function CounselorStudentProfileView({
       >
         <SectionHeading
           id="student-360-preferences"
-          kicker="Student-reported goals"
           title={STUDENT_360_SECTION_LABELS.preferences}
         />
         {preference ? (
@@ -687,7 +673,6 @@ export function CounselorStudentProfileView({
       >
         <SectionHeading
           id="student-360-exams"
-          kicker="Student-reported records"
           title={STUDENT_360_SECTION_LABELS.exams}
         />
         {result.testScores.length === 0 ? (
@@ -755,7 +740,6 @@ export function CounselorStudentProfileView({
       >
         <SectionHeading
           id="student-360-achievements"
-          kicker="Student-reported experience"
           title={STUDENT_360_SECTION_LABELS.achievements}
         />
         {result.achievements.length === 0 ? (

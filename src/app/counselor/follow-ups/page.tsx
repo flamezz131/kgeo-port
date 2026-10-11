@@ -53,7 +53,6 @@ export default async function CounselorFollowUpsPage({
     <section className="counselor-page follow-up-workload-page">
       <header className="counselor-page-header">
         <div>
-          <span className="eyebrow">Counselor workload</span>
           <h1>Follow-ups</h1>
           <p className="muted">
             Track overdue, due-today, upcoming and completed student actions.

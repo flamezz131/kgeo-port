@@ -90,7 +90,6 @@ function ProgressionEvent({
       <article className="official-progression-event">
         <header>
           <div>
-            <span className="eyebrow">Official history event</span>
             <h4>{eventTitle(event)}</h4>
           </div>
           <time dateTime={event.changed_at}>
@@ -393,9 +392,6 @@ export function OfficialProgressionSection({
       id="official-progression"
     >
       <header className="student-360-section-heading">
-        <span className="eyebrow">
-          Section 9 · Institution-managed journey
-        </span>
         <h2 id="official-progression-heading">Journey Progress</h2>
         <p>
           Official Counseling Progression for the institution-managed journey.

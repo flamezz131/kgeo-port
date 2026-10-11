@@ -17,6 +17,7 @@ import {
   submitParentReportAction,
 } from "@/app/actions/parent-report-actions";
 import { createClient } from "@/lib/supabase/client";
+import { ChevronDown } from "lucide-react";
 import { sectionCardClass } from "@/components/shell/form-ui";
 import {
   formatParentReportTimestamp,
@@ -160,7 +161,6 @@ export function ParentReportWorkspace({
       {viewerRole === "counselor" && studentId && (
         <section className={`${sectionCardClass} parent-report-create`}>
           <div>
-            <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Versioned parent communication</span>
             <h2>Create a Parent Report</h2>
             <p>
               Each draft captures a frozen, parent-safe source snapshot. Finalized
@@ -241,7 +241,6 @@ export function ParentReportWorkspace({
           <form action={saveFormAction} className={`${sectionCardClass} parent-report-editor`}>
             <input name="reportId" type="hidden" value={report.report_id} />
             <header>
-              <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Editable parent-safe narrative</span>
               <h2>Report narrative</h2>
               <p>Private Counselor Notes and individual follow-ups are never report sources.</p>
             </header>
@@ -269,7 +268,6 @@ export function ParentReportWorkspace({
 
           <section className={`${sectionCardClass} parent-report-attachments`}>
             <header>
-              <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Selected supporting material</span>
               <h2>Report attachments</h2>
               <p>Only explicit selections appear after the two-page core report.</p>
             </header>
@@ -362,16 +360,26 @@ export function ParentReportWorkspace({
           )}
 
           <section className={`${sectionCardClass} parent-report-history`}>
-            <h2>Audit history</h2>
-            <ol>
-              {workspace.events.map((event) => (
-                <li key={event.event_id}>
-                  <strong>{event.event_type.replaceAll("_", " ")}</strong>
-                  <span>{event.actor_name} · {formatParentReportTimestamp(event.occurred_at)}</span>
-                  {event.event_reason && <p>{event.event_reason}</p>}
-                </li>
-              ))}
-            </ol>
+            {/* Collapsed by default: the log is reference material, opened on demand. */}
+            <details>
+              <summary>
+                <h2>Audit history</h2>
+                <span>
+                  {workspace.events.length}{" "}
+                  {workspace.events.length === 1 ? "event" : "events"}
+                </span>
+                <ChevronDown aria-hidden="true" size={20} />
+              </summary>
+              <ol>
+                {workspace.events.map((event) => (
+                  <li key={event.event_id}>
+                    <strong>{event.event_type.replaceAll("_", " ")}</strong>
+                    <span>{event.actor_name} · {formatParentReportTimestamp(event.occurred_at)}</span>
+                    {event.event_reason && <p>{event.event_reason}</p>}
+                  </li>
+                ))}
+              </ol>
+            </details>
           </section>
         </>
       )}
@@ -455,7 +463,6 @@ function SourceSnapshot({ snapshot }: { snapshot: ParentReportWorkspace["report"
   return (
     <section className={`${sectionCardClass} parent-report-source`}>
       <header>
-        <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Immutable source snapshot</span>
         <h2>Verified information captured for this version</h2>
         <p>Captured {formatParentReportTimestamp(snapshot.captured_at)}. Later operational changes do not rewrite this version.</p>
       </header>

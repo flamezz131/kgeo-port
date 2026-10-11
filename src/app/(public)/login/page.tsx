@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <AuthCard
       eyebrow="Welcome back"
       title="Log in to K-GEO"
-      description="Use your K-GEO account to access the correct portal for your account."
+      description="Students sign in here with their Kumaraguru college email and K-GEO Password."
       footer={
         <>
           <p>

@@ -47,10 +47,9 @@ function DefinitionGrid({ values }: { values: DetailValue[] }) {
   );
 }
 
-function SectionHeading({ id, kicker, title }: { id: string; kicker: string; title: string }) {
+function SectionHeading({ id, title }: { id: string; title: string }) {
   return (
     <header className="student-360-section-heading">
-      <span className="eyebrow">{kicker}</span>
       <h2 id={id}>{title}</h2>
     </header>
   );
@@ -80,7 +79,6 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
 
       <header className="student-360-hero">
         <div className="student-360-hero-main">
-          <span className="eyebrow">Director student profile</span>
           <h1>{displayName}</h1>
           <p>{identity.college_email}</p>
           <div className="student-360-badges">
@@ -116,7 +114,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </nav>
 
       <section aria-labelledby="director-student-overview" className="student-360-section">
-        <SectionHeading id="director-student-overview" kicker="Identity and contact" title="Overview" />
+        <SectionHeading id="director-student-overview" title="Overview" />
         <DefinitionGrid values={[
           { label: "Full name", value: displayName },
           { label: "College email", value: identity.college_email },
@@ -135,7 +133,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-academics" className="student-360-section">
-        <SectionHeading id="director-student-academics" kicker="Student-reported results" title="Academic Portfolio" />
+        <SectionHeading id="director-student-academics" title="Academic Portfolio" />
         {profile ? <DefinitionGrid values={[
           { label: "CGPA and scale", value: profile.cgpa === null ? STUDENT_360_FALLBACKS.notAdded : `${profile.cgpa} / ${profile.cgpa_scale}` },
           { label: "Active backlogs", value: formatStudent360Number(profile.active_backlogs) },
@@ -148,7 +146,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-preferences" className="student-360-section">
-        <SectionHeading id="director-student-preferences" kicker="Student-reported goals" title="Higher-Studies Preferences" />
+        <SectionHeading id="director-student-preferences" title="Higher-Studies Preferences" />
         {preference ? <>
           <DefinitionGrid values={[
             { label: "Higher-studies interest", value: getStudent360InterestLabel(preference.higher_studies_interest) },
@@ -173,7 +171,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-exams" className="student-360-section">
-        <SectionHeading id="director-student-exams" kicker="Student-reported records" title="Study Abroad Exams" />
+        <SectionHeading id="director-student-exams" title="Study Abroad Exams" />
         {result.testScores.length === 0 ? <p className="student-360-empty" role="status">No Study Abroad Exam records have been added.</p> : (
           <ul className="student-360-record-list">{result.testScores.map((score) => <li key={score.id}><article><header><h3>{getStudent360ExamName(score)}</h3><span className="student-360-status">{getStudent360ExamStatusLabel(score.exam_status)}</span></header><DefinitionGrid values={[
             { label: "Attempt", value: String(score.attempt_number) },
@@ -188,7 +186,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-achievements" className="student-360-section">
-        <SectionHeading id="director-student-achievements" kicker="Student-reported experience" title="Achievements" />
+        <SectionHeading id="director-student-achievements" title="Achievements" />
         {result.achievements.length === 0 ? <p className="student-360-empty" role="status">No achievements have been added.</p> : (
           <ul className="student-360-record-list">{result.achievements.map((achievement) => <li key={achievement.id}><article><header><div><span className="eyebrow">{getStudent360AchievementTypeLabel(achievement.achievement_type)}</span><h3>{achievement.title}</h3></div><time>{formatStudent360Date(achievement.achievement_date)}</time></header><DefinitionGrid values={[
             { label: "Organization", value: achievement.organization ?? STUDENT_360_FALLBACKS.notAdded },
@@ -199,7 +197,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-documents" className="student-360-section">
-        <SectionHeading id="director-student-documents" kicker="Approved read-only files" title="Documents and Achievement Evidence" />
+        <SectionHeading id="director-student-documents" title="Documents and Achievement Evidence" />
         <h3>Achievement Evidence</h3>
         {result.achievementEvidence.status === "unavailable" ? <SectionUnavailable /> : result.achievementEvidence.data.length === 0 ? <p className="student-360-empty">No available Achievement Evidence.</p> : (
           <ul className="student-360-record-list">{result.achievementEvidence.data.map((document) => <li key={document.documentId}><article><header><h3>{document.documentName}</h3><Link href={`/director/students/${identity.student_id}/achievements/${document.achievementId}/evidence/${document.documentId}/view`} target="_blank">View evidence</Link></header><DefinitionGrid values={[
@@ -220,7 +218,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-eligibility" className="student-360-section">
-        <SectionHeading id="director-student-eligibility" kicker="Latest approved assessment" title="Eligibility Assessment" />
+        <SectionHeading id="director-student-eligibility" title="Eligibility Assessment" />
         {result.eligibility.status === "unavailable" ? <SectionUnavailable /> : result.eligibility.data ? <>
           <DefinitionGrid values={[
             { label: "Overall", value: formatDirectorCaseLabel(result.eligibility.data.overall_status) },
@@ -240,7 +238,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-progress" className="student-360-section">
-        <SectionHeading id="director-student-progress" kicker="Safe institutional projection" title="Journey and Progress" />
+        <SectionHeading id="director-student-progress" title="Journey and Progress" />
         {result.caseDetail.progress.status === "unavailable" ? <SectionUnavailable /> : <>
           {result.caseDetail.progress.data.current ? <DefinitionGrid values={[
             { label: "Current stage", value: formatDirectorCaseLabel(result.caseDetail.progress.data.current.currentStage) },
@@ -261,7 +259,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-applications" className="student-360-section">
-        <SectionHeading id="director-student-applications" kicker="Read-only lifecycle" title="University Application Journey" />
+        <SectionHeading id="director-student-applications" title="University Application Journey" />
         {result.caseDetail.applications.status === "unavailable" ? <SectionUnavailable /> : result.caseDetail.applications.data.length === 0 ? <p className="student-360-empty">No university applications.</p> : <ul className="student-360-record-list">{result.caseDetail.applications.data.map((application) => <li key={application.applicationId}><article><header><div><span className="eyebrow">{application.countryCode} · {formatDirectorCaseLabel(application.applicationStatus)}</span><h3>{application.universityName}</h3><p>{application.programmeName}</p></div>{application.isPrimary && <span className="student-360-status">Primary</span>}</header><DefinitionGrid values={[
           { label: "Intake", value: `${formatDirectorCaseLabel(application.intakeTerm)} ${application.intakeYear}` },
           { label: "University decision", value: formatDirectorCaseLabel(application.journey.universityDecision) },
@@ -275,12 +273,12 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-readiness" className="student-360-section">
-        <SectionHeading id="director-student-readiness" kicker="Read-only assessment history" title="Global Master&apos;s Readiness" />
+        <SectionHeading id="director-student-readiness" title="Global Master&apos;s Readiness" />
         {result.caseDetail.readinessAssessments.status === "unavailable" ? <SectionUnavailable /> : result.caseDetail.readinessAssessments.data.length === 0 ? <p className="student-360-empty">No Global Master&apos;s Readiness assessment.</p> : result.caseDetail.readinessAssessments.data.map((assessment, index) => <article className="student-360-record-list" key={assessment.assessmentId}><header><div><span className="eyebrow">{index === 0 ? "Latest assessment" : `Revision ${assessment.revisionNumber}`}</span><h3>{assessment.totalScore} / 100 · {GLOBAL_READINESS_BAND_LABELS[assessment.readinessBand]}</h3></div><time>{formatStudent360Timestamp(assessment.assessedAt)}</time></header><DefinitionGrid values={GLOBAL_READINESS_DIMENSIONS.map((dimension) => ({ label: dimension.name, value: `${assessment.dimensionTotals[dimension.totalKey]} / ${dimension.maximum}` }))} /><details open={index === 0}><summary>13 criterion scores and rationales</summary><DefinitionGrid values={GLOBAL_READINESS_CRITERIA.map((criterion) => ({ label: criterion.label, value: `${assessment.scores[criterion.key]} / ${criterion.maximum}${assessment.rationales[criterion.key] ? ` — ${assessment.rationales[criterion.key]}` : ""}` }))} /></details><p>{assessment.assessmentRationale}</p>{assessment.parentSafeSummary && <p>{assessment.parentSafeSummary}</p>}<small>Assessed by {assessment.assessorFullName}. Safe evidence snapshot contains no document paths or private notes.</small></article>)}
       </section>
 
       <section aria-labelledby="director-student-consultations" className="student-360-section">
-        <SectionHeading id="director-student-consultations" kicker="Operational oversight" title="Consultation History" />
+        <SectionHeading id="director-student-consultations" title="Consultation History" />
         {result.caseDetail.consultations.status === "unavailable" ? <SectionUnavailable /> : result.caseDetail.consultations.data.length === 0 ? <p className="student-360-empty">No consultation history.</p> : <ul className="student-360-record-list">{result.caseDetail.consultations.data.map((consultation) => <li key={consultation.consultationId}><article><header><h3>{consultation.requestNumber}</h3><span className="student-360-status">{formatDirectorCaseLabel(consultation.status)}</span></header><DefinitionGrid values={[
           { label: "Date", value: formatStudent360Date(consultation.consultationDate) },
           { label: "Time", value: consultation.slotStart && consultation.slotEnd ? `${consultation.slotStart}–${consultation.slotEnd}` : STUDENT_360_FALLBACKS.notAdded },
@@ -290,7 +288,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-primary-counselor" className="student-360-section">
-        <SectionHeading id="director-student-primary-counselor" kicker="Current assignment" title="Primary Counselor" />
+        <SectionHeading id="director-student-primary-counselor" title="Primary Counselor" />
         {result.caseDetail.primaryCounselor.status === "unavailable" ? <SectionUnavailable /> : result.caseDetail.primaryCounselor.data ? <DefinitionGrid values={[
           { label: "Name", value: result.caseDetail.primaryCounselor.data.fullName ?? "Name not provided" },
           { label: "College email", value: result.caseDetail.primaryCounselor.data.collegeEmail },
@@ -301,7 +299,7 @@ export function DirectorStudentProfile({ result }: { result: DirectorStudentProf
       </section>
 
       <section aria-labelledby="director-student-parent-reports" className="student-360-section">
-        <SectionHeading id="director-student-parent-reports" kicker="Approved editable workflow" title="Parent Reports" />
+        <SectionHeading id="director-student-parent-reports" title="Parent Reports" />
         <p>Parent Reports are the only Student-case workflow editable by Directors.</p>
         {result.caseDetail.parentReports.status === "unavailable" ? <SectionUnavailable /> : result.caseDetail.parentReports.data.length === 0 ? <p className="student-360-empty">No Parent Reports.</p> : <ul className="student-360-record-list">{result.caseDetail.parentReports.data.map((report) => <li key={report.reportId}><article><header><div><span className="eyebrow">Version {report.versionNumber} · {formatDirectorCaseLabel(report.status)}</span><h3>{report.academicPeriod}</h3></div><Link href={`/director/reports/${report.reportId}`}>Open report workspace</Link></header><DefinitionGrid values={[
           { label: "Updated", value: formatStudent360Timestamp(report.updatedAt) },

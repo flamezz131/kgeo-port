@@ -71,7 +71,6 @@ export function DirectorStudentAssignmentManagement({
       >
         <header>
           <div>
-            <span className="eyebrow">Primary Counselor control</span>
             <h2 id="director-assignment-heading">Student assignment</h2>
           </div>
         </header>
@@ -112,7 +111,6 @@ export function DirectorStudentAssignmentManagement({
     >
       <header className="director-assignment-heading">
         <div>
-          <span className="eyebrow">Primary Counselor control</span>
           <h2 id="director-assignment-heading">Student assignment</h2>
           <p>
             Reassign established case ownership without changing
@@ -239,13 +237,13 @@ export function DirectorStudentAssignmentManagement({
       >
         <form action={submitAssignment} ref={formRef}>
           <header>
-            <span className="eyebrow">Director-controlled ownership</span>
             <h2 id="director-assignment-dialog-title">
               Reassign Primary Counselor
             </h2>
             <p>
-              {displayStudentName(selectedStudent)} will move immediately to the
-              selected Counselor&apos;s active case list.
+              {displayStudentName(selectedStudent)}{" "}
+              will move immediately to the selected Counselor&apos;s active case
+              list.
             </p>
           </header>
 

@@ -30,6 +30,12 @@ registerHooks({
           .href,
       };
     }
+    if (specifier === "@/lib/auth/student-institutions") {
+      return {
+        shortCircuit: true,
+        url: new URL("./student-institutions.ts", import.meta.url).href,
+      };
+    }
     return nextResolve(specifier, context);
   },
 });

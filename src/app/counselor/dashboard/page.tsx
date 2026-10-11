@@ -43,7 +43,7 @@ const METRIC_TONE: Record<MetricTone, { chip: string; value: string }> = {
 
 const SLOT_TONE: Record<string, string> = {
   available: "border-dashed border-slate-200 bg-slate-50/60",
-  expired: "border-slate-200 bg-slate-50/60 opacity-70",
+  expired: "border-slate-200 bg-slate-100/70",
   upcoming: "border-blue-200 bg-blue-50/50",
   in_progress: "border-emerald-300 bg-emerald-50/70",
   counselor_assigned: "border-blue-200 bg-blue-50/50",
@@ -71,7 +71,7 @@ function MetricCard({
   return (
     <article className="flex flex-col justify-between gap-4 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_3px_rgb(15_23_42/0.06)] transition-shadow hover:shadow-[0_10px_24px_-14px_rgb(15_23_42/0.3)]">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[0.72rem] font-bold leading-snug text-slate-500">
+        <span className="min-w-0 text-[0.72rem] font-bold leading-snug text-slate-500 [overflow-wrap:anywhere]">
           {label}
         </span>
         <span className={`grid size-7 shrink-0 place-items-center rounded-lg ${styles.chip}`}>
@@ -97,9 +97,6 @@ function CounselorDashboardUnavailable() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-          Counselor dashboard
-        </span>
         <h1 className="mt-2">Schedule temporarily unavailable</h1>
       </div>
       <div
@@ -167,9 +164,6 @@ export default async function CounselorDashboardPage() {
     <div className="flex flex-col gap-7">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-            Counselor dashboard
-          </span>
           <h1 className="mt-2">Good day, {profile.full_name ?? "Counselor"}</h1>
           <p className="mt-2 inline-flex items-center gap-2 rounded-lg bg-white px-2.5 py-1 text-[0.8rem] font-semibold text-slate-500 ring-1 ring-[#E2E8F0]">
             <CalendarDays size={14} className="text-[#1D4ED8]" />
@@ -232,15 +226,9 @@ export default async function CounselorDashboardPage() {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] xl:items-start">
-        <section
-          className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:p-6"
-          aria-labelledby="today-heading"
-        >
+        <section aria-labelledby="today-heading">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-                Today&apos;s consultations
-              </span>
               <h2 id="today-heading" className="mt-1.5">
                 My assigned schedule today
               </h2>
@@ -297,7 +285,7 @@ export default async function CounselorDashboardPage() {
                               {slot.booking.course} &middot;{" "}
                               {slot.booking.department}
                             </span>
-                            <small className="block text-[0.7rem] tabular-nums text-slate-400">
+                            <small className="block text-[0.7rem] tabular-nums text-slate-500">
                               {slot.booking.request_number}
                             </small>
                           </div>
@@ -317,7 +305,7 @@ export default async function CounselorDashboardPage() {
                           </div>
                         </div>
                       ) : (
-                        <strong className="text-[0.8rem] font-semibold text-slate-400">
+                        <strong className="text-[0.8rem] font-semibold text-slate-500">
                           No assigned consultation
                         </strong>
                       )}
@@ -330,9 +318,6 @@ export default async function CounselorDashboardPage() {
         </section>
 
         <aside className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:p-6">
-          <span className="text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-            Upcoming consultations
-          </span>
           <h2 className="mt-1.5">My next consultation</h2>
 
           {nextConsultation ? (

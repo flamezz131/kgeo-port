@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { canonicalFullNameSchema } from "@/lib/validation/full-name";
-import { institutionalEmailSchema } from "@/lib/validation/institutional-email";
+import {
+  STUDENT_INSTITUTIONS,
+  getStudentInstitutionMismatchMessage,
+  institutionMatchesEmail,
+  isStudentInstitution,
+  type StudentInstitution,
+} from "@/lib/auth/student-institutions";
 
 type ValidationResult<T> =
   | { success: true; data: T }
@@ -23,11 +29,27 @@ export function validateLogin(formData: FormData): ValidationResult<{
   email: string;
   password: string;
 }> {
+  // The institution only selects which exact email domain is expected. It is
+  // never returned, so it cannot reach Supabase Auth or influence the role.
+  const institution =
+    formData.getAll("institution").length === 1
+      ? formData.get("institution")
+      : null;
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const errors: Record<string, string[]> = {};
 
-  if (!emailPattern.test(email)) errors.email = ["Enter a valid email address."];
+  if (!isStudentInstitution(institution)) {
+    errors.institution = ["Select your institution."];
+  }
+  if (!emailPattern.test(email)) {
+    errors.email = ["Enter a valid email address."];
+  } else if (
+    isStudentInstitution(institution) &&
+    !institutionMatchesEmail(institution, email)
+  ) {
+    errors.email = [getStudentInstitutionMismatchMessage(institution)];
+  }
   if (!password) errors.password = ["Enter your password."];
 
   return Object.keys(errors).length
@@ -35,10 +57,19 @@ export function validateLogin(formData: FormData): ValidationResult<{
     : { success: true, data: { email, password } };
 }
 
+const studentCollegeEmailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email("Enter a valid college email address."));
+
 export const registrationSchema = z
   .object({
     fullName: canonicalFullNameSchema,
-    collegeEmail: institutionalEmailSchema,
+    institution: z.enum(STUDENT_INSTITUTIONS, {
+      error: "Select your institution.",
+    }),
+    collegeEmail: studentCollegeEmailSchema,
     password: z
       .string()
       .min(8, "K-GEO Password must be at least 8 characters.")
@@ -49,24 +80,35 @@ export const registrationSchema = z
       error: "You must agree to the Terms and Privacy Policy.",
     }),
   })
-  .superRefine(({ password, confirmPassword }, context) => {
-    if (password !== confirmPassword) {
-      context.addIssue({
-        code: "custom",
-        path: ["confirmPassword"],
-        message: "K-GEO Passwords do not match.",
-      });
-    }
-  });
+  .superRefine(
+    ({ institution, collegeEmail, password, confirmPassword }, context) => {
+      if (!institutionMatchesEmail(institution, collegeEmail)) {
+        context.addIssue({
+          code: "custom",
+          path: ["collegeEmail"],
+          message: getStudentInstitutionMismatchMessage(institution),
+        });
+      }
+      if (password !== confirmPassword) {
+        context.addIssue({
+          code: "custom",
+          path: ["confirmPassword"],
+          message: "K-GEO Passwords do not match.",
+        });
+      }
+    },
+  );
 
 export function validateRegistration(formData: FormData): ValidationResult<{
   fullName: string;
+  institution: StudentInstitution;
   email: string;
   password: string;
 }> {
   const duplicateErrors: Record<string, string[]> = {};
   for (const field of [
     "fullName",
+    "institution",
     "collegeEmail",
     "password",
     "confirmPassword",
@@ -82,6 +124,7 @@ export function validateRegistration(formData: FormData): ValidationResult<{
 
   const result = registrationSchema.safeParse({
     fullName: formData.get("fullName"),
+    institution: formData.get("institution"),
     collegeEmail: formData.get("collegeEmail"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
@@ -99,6 +142,7 @@ export function validateRegistration(formData: FormData): ValidationResult<{
     success: true,
     data: {
       fullName: result.data.fullName,
+      institution: result.data.institution,
       email: result.data.collegeEmail,
       password: result.data.password,
     },

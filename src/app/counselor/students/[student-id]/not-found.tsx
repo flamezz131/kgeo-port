@@ -4,7 +4,6 @@ import { STUDENT_360_BASE_PATH } from "@/lib/counselor/student-profile";
 export default function CounselorStudentProfileNotFound() {
   return (
     <section className="counselor-page student-360-unavailable">
-      <span className="eyebrow">Counselor Student 360</span>
       <h1>Student profile not found</h1>
       <p>
         This student profile is unavailable or the link is no longer valid.

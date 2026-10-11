@@ -37,7 +37,6 @@ export function FollowUpWorkloadMetrics({
     <section aria-labelledby="follow-up-metrics-heading">
       <div className="follow-up-workload-section-heading">
         <div>
-          <span className="eyebrow">Complete counselor workload</span>
           <h2 id="follow-up-metrics-heading">Workload summary</h2>
         </div>
         <p>These global counts remain unchanged when list filters change.</p>
@@ -89,7 +88,6 @@ export function FollowUpWorkloadFilters({
     >
       <div className="follow-up-workload-section-heading">
         <div>
-          <span className="eyebrow">Workload controls</span>
           <h2 id="follow-up-filters-heading">Search and filter</h2>
         </div>
         {query.hasFilters && (
@@ -496,7 +494,6 @@ export function FollowUpWorkloadResults({
     >
       <div className="follow-up-workload-section-heading">
         <div>
-          <span className="eyebrow">Filtered operational list</span>
           <h2 id="follow-up-workload-results-heading">Follow-up records</h2>
         </div>
         <p>{result.totalCount} matching follow-ups</p>

@@ -33,7 +33,6 @@ export function CounselorSemesterSummary({
       className="student-360-section counselor-semester-summary"
     >
       <header className="student-360-section-heading">
-        <span className="eyebrow">Parent-safe structured record</span>
         <h2 id="counselor-semester-summary-heading">
           Counselor Semester Summary
         </h2>

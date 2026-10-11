@@ -10,25 +10,18 @@ const PANEL_SURFACE =
 export function PageHeader({
   action,
   description,
-  eyebrow,
   title,
   titleId,
 }: {
   action?: ReactNode;
   description?: ReactNode;
-  eyebrow: string;
   title: ReactNode;
   titleId?: string;
 }) {
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
-        <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[var(--brand-600)]">
-          {eyebrow}
-        </span>
-        <h1 className="mt-2" id={titleId}>
-          {title}
-        </h1>
+        <h1 id={titleId}>{title}</h1>
         {description && (
           <p className="mt-2 max-w-2xl text-[var(--muted)]">{description}</p>
         )}
@@ -41,25 +34,18 @@ export function PageHeader({
 export function SectionHeader({
   action,
   description,
-  eyebrow,
   title,
   titleId,
 }: {
   action?: ReactNode;
   description?: ReactNode;
-  eyebrow: string;
   title: ReactNode;
   titleId?: string;
 }) {
   return (
     <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
-        <span className="text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[var(--brand-600)]">
-          {eyebrow}
-        </span>
-        <h2 className="mt-1.5" id={titleId}>
-          {title}
-        </h2>
+        <h2 id={titleId}>{title}</h2>
         {description && (
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
             {description}

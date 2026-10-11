@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import Link from "next/link";
+import { useActionState, useState } from "react";
 import { register } from "@/app/actions/auth-actions";
 import { FieldError } from "@/components/forms/field-error";
 import {
@@ -11,9 +12,15 @@ import {
 } from "@/components/shell/form-ui";
 import { SubmitButton } from "@/components/ui/submit-button";
 import {
-  INSTITUTIONAL_EMAIL_INPUT_PATTERN,
-  institutionalEmailSchema,
-} from "@/lib/validation/institutional-email";
+  DEFAULT_STUDENT_INSTITUTION,
+  STUDENT_INSTITUTIONS,
+  getStudentInstitutionEmailHint,
+  getStudentInstitutionEmailInputPattern,
+  getStudentInstitutionEmailPlaceholder,
+  isStudentInstitution,
+  type StudentInstitution,
+} from "@/lib/auth/student-institutions";
+import { institutionalEmailSchema } from "@/lib/validation/institutional-email";
 import { PROFILE_FULL_NAME_MAX_LENGTH } from "@/lib/validation/full-name";
 import { initialActionState } from "@/types";
 
@@ -24,6 +31,10 @@ export function RegisterForm() {
   const [state, action, isPending] = useActionState(
     register,
     initialActionState,
+  );
+  // Display-only state. The server re-validates institution and email domain.
+  const [institution, setInstitution] = useState<StudentInstitution>(
+    DEFAULT_STUDENT_INSTITUTION,
   );
 
   return (
@@ -60,8 +71,35 @@ export function RegisterForm() {
         <FieldError id="fullName-error" messages={state.errors?.fullName} />
       </Field>
 
+      <Field htmlFor="institution" label="Institution">
+        <select
+          aria-describedby="institution-error"
+          aria-invalid={Boolean(state.errors?.institution)}
+          className={registrationControl}
+          id="institution"
+          name="institution"
+          onChange={(event) => {
+            if (isStudentInstitution(event.currentTarget.value)) {
+              setInstitution(event.currentTarget.value);
+            }
+          }}
+          required
+          value={institution}
+        >
+          {STUDENT_INSTITUTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <FieldError
+          id="institution-error"
+          messages={state.errors?.institution}
+        />
+      </Field>
+
       <Field
-        hint="Use your exact @kct.ac.in student email."
+        hint={getStudentInstitutionEmailHint(institution)}
         hintId="collegeEmail-hint"
         htmlFor="collegeEmail"
         label="College Email ID"
@@ -88,8 +126,8 @@ export function RegisterForm() {
               .trim()
               .toLowerCase();
           }}
-          pattern={INSTITUTIONAL_EMAIL_INPUT_PATTERN}
-          placeholder="yourname@kct.ac.in"
+          pattern={getStudentInstitutionEmailInputPattern(institution)}
+          placeholder={getStudentInstitutionEmailPlaceholder(institution)}
           required
           type="email"
         />
@@ -155,7 +193,15 @@ export function RegisterForm() {
             className="text-[0.9rem] leading-normal text-[var(--ink-body)]"
             htmlFor="termsAccepted"
           >
-            I agree to the K-GEO Terms and Privacy Policy.
+            I agree to the K-GEO{" "}
+            <Link className="font-semibold underline" href="/terms" target="_blank">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link className="font-semibold underline" href="/privacy" target="_blank">
+              Privacy Policy
+            </Link>
+            .
           </label>
           <FieldError
             id="termsAccepted-error"

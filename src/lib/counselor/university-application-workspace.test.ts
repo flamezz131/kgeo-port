@@ -26,6 +26,12 @@ registerHooks({
           .href,
       };
     }
+    if (specifier === "@/lib/auth/student-institutions") {
+      return {
+        shortCircuit: true,
+        url: new URL("../auth/student-institutions.ts", import.meta.url).href,
+      };
+    }
     return nextResolve(specifier, context);
   },
 });
@@ -486,6 +492,49 @@ test("list parsing accepts exact rows and preserves microsecond ordering", () =>
   assert.equal(result.entries.length, 2);
   assert.equal(result.entries[0].applicationId, applicationId1);
   assert.equal(result.totalCount, 2);
+});
+
+test("list parsing accepts KCT, KCLAS and KCTBS Student emails and rejects other domains", () => {
+  const query = parseUniversityApplicationWorkspaceQuery({
+    archiveFilter: "all",
+    pageSize: 2,
+  });
+  assert.ok(query);
+  const now = new Date("2026-08-02T06:00:00Z");
+
+  for (const collegeEmail of [
+    "student@kct.ac.in",
+    "student@kclas.ac.in",
+    "student@kctbs.ac.in",
+  ]) {
+    const result = parseUniversityApplicationWorkspaceListResponse(
+      [row({ college_email: collegeEmail, total_count: 1 })],
+      query,
+      now,
+    );
+    assert.ok(result, collegeEmail);
+    assert.equal(result.entries.length, 1, collegeEmail);
+  }
+
+  for (const collegeEmail of [
+    "student@student.kct.ac.in",
+    "student@sub.kclas.ac.in",
+    "student@kct.ac.in.fake.com",
+    "student@kctbs-ac.in",
+    "student@gmail.com",
+    "Student@KCLAS.ac.in",
+    "student@@kct.ac.in",
+  ]) {
+    assert.equal(
+      parseUniversityApplicationWorkspaceListResponse(
+        [row({ college_email: collegeEmail, total_count: 1 })],
+        query,
+        now,
+      ),
+      null,
+      collegeEmail,
+    );
+  }
 });
 
 test("list parsing validates empty and beyond-last-page sentinels", () => {

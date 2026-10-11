@@ -21,9 +21,19 @@ import {
 } from "@/lib/consultations/booking";
 import { initialConsultationActionState } from "@/types";
 
+export type ConsultationFormDefaults = {
+  rollNumber: string;
+  personalEmail: string;
+  mobileNumber: string;
+  course: string;
+  department: string;
+  collegeEndYear: number | null;
+};
+
 type ConsultationFormProps = {
   collegeEmail: string;
   defaultStudentName: string;
+  defaults?: ConsultationFormDefaults;
   maximumConsultationDate: string;
   minimumConsultationDate: string;
 };
@@ -31,6 +41,7 @@ type ConsultationFormProps = {
 export function ConsultationForm({
   collegeEmail,
   defaultStudentName,
+  defaults,
   maximumConsultationDate,
   minimumConsultationDate,
 }: ConsultationFormProps) {
@@ -38,8 +49,23 @@ export function ConsultationForm({
     createConsultation,
     initialConsultationActionState,
   );
-  const [course, setCourse] = useState<Course | "">("");
-  const [department, setDepartment] = useState("");
+  // Only prefill values that are valid options in this form.
+  const defaultCourse =
+    defaults && isCourse(defaults.course) ? defaults.course : "";
+  const defaultDepartment =
+    defaultCourse !== "" &&
+    (COURSE_DEPARTMENTS[defaultCourse] as readonly string[]).includes(
+      defaults?.department ?? "",
+    )
+      ? (defaults?.department ?? "")
+      : "";
+  const defaultEndYear =
+    defaults?.collegeEndYear &&
+    COLLEGE_END_YEARS.includes(defaults.collegeEndYear)
+      ? String(defaults.collegeEndYear)
+      : "";
+  const [course, setCourse] = useState<Course | "">(defaultCourse);
+  const [department, setDepartment] = useState(defaultDepartment);
   const isLocked = isConsultationSubmissionLocked(isPending, state);
 
   if (state.status === "success" && state.receipt) {
@@ -88,7 +114,11 @@ export function ConsultationForm({
   const departments = course ? COURSE_DEPARTMENTS[course] : [];
 
   return (
-    <form action={action} aria-busy={isPending} className="form-stack">
+    <form
+      action={action}
+      aria-busy={isPending}
+      className="form-stack consultation-form"
+    >
       {state.message && (
         <p className="form-error" role="alert">
           {state.message}
@@ -122,6 +152,7 @@ export function ConsultationForm({
             aria-describedby="rollNumber-hint rollNumber-error"
             aria-invalid={Boolean(state.errors?.rollNumber)}
             autoCapitalize="characters"
+            defaultValue={defaults?.rollNumber ?? ""}
             id="rollNumber"
             maxLength={50}
             name="rollNumber"
@@ -159,6 +190,7 @@ export function ConsultationForm({
             aria-invalid={Boolean(state.errors?.personalEmail)}
             autoCapitalize="none"
             autoComplete="email"
+            defaultValue={defaults?.personalEmail ?? ""}
             id="personalEmail"
             name="personalEmail"
             required
@@ -175,7 +207,7 @@ export function ConsultationForm({
           <select
             aria-describedby="collegeEndYear-error"
             aria-invalid={Boolean(state.errors?.collegeEndYear)}
-            defaultValue=""
+            defaultValue={defaultEndYear}
             id="collegeEndYear"
             name="collegeEndYear"
             required
@@ -258,6 +290,7 @@ export function ConsultationForm({
             aria-describedby="mobileNumber-hint mobileNumber-error"
             aria-invalid={Boolean(state.errors?.mobileNumber)}
             autoComplete="tel"
+            defaultValue={defaults?.mobileNumber ?? ""}
             id="mobileNumber"
             inputMode="numeric"
             maxLength={10}

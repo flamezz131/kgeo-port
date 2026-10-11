@@ -22,6 +22,7 @@ registerHooks({
       "@/lib/profiles/options": "../profiles/options.ts",
       "@/lib/validation/institutional-email":
         "../validation/institutional-email.ts",
+      "@/lib/auth/student-institutions": "../auth/student-institutions.ts",
     };
     const target = aliases[specifier];
     if (target) {
@@ -231,6 +232,75 @@ test("invalid route UUID fails before any data source call", async () => {
     { kind: "not_found" },
   );
   assert.equal(callCount, 0);
+});
+
+test("Student identities from KCT, KCLAS and KCTBS load and other domains fail closed", async () => {
+  for (const collegeEmail of [
+    "ananya@kct.ac.in",
+    "ananya@kclas.ac.in",
+    "ananya@kctbs.ac.in",
+  ]) {
+    const result = await fetchCounselorStudentProfile(
+      STUDENT_ID,
+      1,
+      validSource({
+        identityData: { ...identity, college_email: collegeEmail },
+      }),
+    );
+    assert.equal(result.kind, "ready", collegeEmail);
+  }
+
+  for (const collegeEmail of [
+    "ananya@student.kct.ac.in",
+    "ananya@sub.kclas.ac.in",
+    "ananya@kct.ac.in.fake.com",
+    "ananya@kctbs-ac.in",
+    "ananya@gmail.com",
+    "ananya@@kct.ac.in",
+  ]) {
+    const result = await fetchCounselorStudentProfile(
+      STUDENT_ID,
+      1,
+      validSource({
+        identityData: { ...identity, college_email: collegeEmail },
+      }),
+    );
+    assert.notEqual(result.kind, "ready", collegeEmail);
+  }
+});
+
+test("every stored graduation year inside the database envelope loads", async () => {
+  for (const graduationYear of [2000, 2022, 2023, 2024, 2035, 2040, 2041, 2100]) {
+    const result = await fetchCounselorStudentProfile(
+      STUDENT_ID,
+      1,
+      validSource({
+        sections: validSections({
+          profile: {
+            data: { ...profile, graduation_year: graduationYear },
+            error: null,
+          },
+        }),
+      }),
+    );
+    assert.equal(result.kind, "ready", String(graduationYear));
+  }
+
+  for (const graduationYear of [1999, 2101, 2026.5]) {
+    const result = await fetchCounselorStudentProfile(
+      STUDENT_ID,
+      1,
+      validSource({
+        sections: validSections({
+          profile: {
+            data: { ...profile, graduation_year: graduationYear },
+            error: null,
+          },
+        }),
+      }),
+    );
+    assert.notEqual(result.kind, "ready", String(graduationYear));
+  }
 });
 
 test("unknown or staff identity returns not found without detail queries", async () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useActionState,
   useCallback,
   useMemo,
@@ -8,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CircleCheck, CircleX } from "lucide-react";
 import {
   saveStudentAcademics,
   saveStudentIdentity,
@@ -38,7 +39,7 @@ import {
   PROFILE_COLLEGES,
   PROFILE_CURRENT_SEMESTERS,
   PROFILE_CURRENT_YEARS,
-  PROFILE_GRADUATION_YEARS,
+  getGraduationYearOptions,
   STUDENT_PLANNING_STAGE_OPTIONS,
   STUDY_MODE_OPTIONS,
   TARGET_INTAKE_SEASONS,
@@ -53,23 +54,26 @@ import {
   type StudentPreferenceFormValues,
   type StudentProfileFormValues,
 } from "@/lib/profiles/types";
+import { buildProfileRequirementChecklist } from "@/lib/profiles/completion";
 import { PROFILE_FULL_NAME_MAX_LENGTH } from "@/lib/validation/full-name";
-import { sectionCardClass } from "@/components/shell/form-ui";
+import { sectionPlainClass } from "@/components/shell/form-ui";
 
 type StudentProfileOnboardingProps = {
   achievementsSection: ReactNode;
   collegeEmail: string;
   completion: ProfileCompletionPresentation;
   fullName: string;
+  initialStep?: ProfileStep;
   preferences: StudentPreferenceFormValues | null;
   profile: StudentProfileFormValues | null;
+  recordsSection: ReactNode;
 };
 
 const STEPS: ReadonlyArray<{ id: ProfileStep; label: string }> = [
   { id: "identity", label: "Identity" },
   { id: "academics", label: "Academic Portfolio" },
   { id: "preferences", label: "Preferences" },
-  { id: "review", label: "Review" },
+  { id: "records", label: "Exams & Documents" },
 ];
 
 function ActionFeedback({ state }: { state: ProfileActionState }) {
@@ -78,6 +82,18 @@ function ActionFeedback({ state }: { state: ProfileActionState }) {
     <p className="form-error" role="alert">
       {state.message}
     </p>
+  );
+}
+
+function RequirementStatusIcon({ complete }: { complete: boolean }) {
+  const Icon = complete ? CircleCheck : CircleX;
+  return (
+    <Icon
+      aria-label={complete ? "Complete" : "Incomplete"}
+      className="profile-check-icon"
+      role="img"
+      size={15}
+    />
   );
 }
 
@@ -122,11 +138,13 @@ export function StudentProfileOnboarding({
   collegeEmail,
   completion,
   fullName,
+  initialStep = "identity",
   preferences,
   profile,
+  recordsSection,
 }: StudentProfileOnboardingProps) {
   const router = useRouter();
-  const [activeStep, setActiveStep] = useState<ProfileStep>("identity");
+  const [activeStep, setActiveStep] = useState<ProfileStep>(initialStep);
   const [identitySaved, setIdentitySaved] = useState(Boolean(profile));
   const [saveNotice, setSaveNotice] = useState("");
   const identityActionWithAdvance = useCallback(
@@ -163,7 +181,7 @@ export function StudentProfileOnboarding({
       const nextState = await saveStudentPreferences(previousState, formData);
       if (nextState.status === "success") {
         setSaveNotice(nextState.message ?? "Preferences saved.");
-        setActiveStep("review");
+        setActiveStep("records");
         router.refresh();
       } else {
         setSaveNotice("");
@@ -223,12 +241,16 @@ export function StudentProfileOnboarding({
   }, [department, stream, sameAsUg]);
 
   const specOptions = getSpecializationsForCourses(preferredCourses, stream);
+  const requirementChecklist = buildProfileRequirementChecklist(
+    completion,
+    profile,
+    preferences,
+  );
 
   return (
     <div className="profile-experience">
       <aside className="profile-completion-card" aria-labelledby="completion-title">
         <div>
-          <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Your progress</span>
           <h2 id="completion-title">{completion.title}</h2>
           <p>{completion.description}</p>
         </div>
@@ -247,17 +269,35 @@ export function StudentProfileOnboarding({
           {completion.completedFields} of {completion.totalFields} essential fields
         </p>
         <ul className="profile-check-list">
-          <li data-complete={completion.academicComplete}>
-            Academic section {completion.academicComplete ? "complete" : "incomplete"}
-          </li>
-          <li data-complete={completion.preferencesComplete}>
-            Preferences {completion.preferencesComplete ? "complete" : "incomplete"}
-          </li>
-          <li data-complete={completion.readyForCounseling}>
-            {completion.readyForCounseling
-              ? "Ready for counseling"
-              : "More information needed for counseling readiness"}
-          </li>
+          {requirementChecklist.map((section) => {
+            const missingItems = section.complete
+              ? []
+              : section.items.filter((item) => !item.complete);
+            return (
+              <li data-complete={section.complete} key={section.id}>
+                <span className="profile-check-row">
+                  <RequirementStatusIcon complete={section.complete} />
+                  <span>{section.label}</span>
+                </span>
+                {missingItems.length > 0 && (
+                  <div className="profile-check-missing">
+                    Missing:{" "}
+                    {missingItems.map((item, index) => (
+                      <Fragment key={item.label}>
+                        {index > 0 && ", "}
+                        <button
+                          onClick={() => setActiveStep(item.step)}
+                          type="button"
+                        >
+                          {item.label}
+                        </button>
+                      </Fragment>
+                    ))}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </aside>
 
@@ -286,11 +326,10 @@ export function StudentProfileOnboarding({
 
         <section
           aria-labelledby="identity-heading"
-          className={sectionCardClass}
+          className={sectionPlainClass}
           style={activeStep === "identity" ? {} : { display: "none" }}
         >
           <header>
-            <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Section 1 of 6</span>
             <h2 id="identity-heading">Basic / Identity Details</h2>
             <p>Start with the information your counselor needs to identify your course.</p>
           </header>
@@ -510,7 +549,10 @@ export function StudentProfileOnboarding({
                     required
                   >
                     <option disabled value="">Select graduation year</option>
-                    {PROFILE_GRADUATION_YEARS.map((year) => (
+                    {getGraduationYearOptions(
+                      undefined,
+                      profile?.graduation_year ?? null,
+                    ).map((year) => (
                       <option key={year} value={year}>{year}</option>
                     ))}
                   </select>
@@ -530,11 +572,10 @@ export function StudentProfileOnboarding({
 
         <section
           aria-labelledby="academics-heading"
-          className={sectionCardClass}
+          className={sectionPlainClass}
           style={activeStep === "academics" ? {} : { display: "none" }}
         >
           <header>
-            <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Section 2 of 6</span>
             <h2 id="academics-heading">Academic Portfolio</h2>
             <p>Record your current academic results.</p>
           </header>
@@ -684,13 +725,9 @@ export function StudentProfileOnboarding({
 
         <section
           aria-labelledby="preferences-heading"
-          className="bg-white/70 backdrop-blur-2xl border border-white rounded-[2rem] p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.04)]"
           style={activeStep === "preferences" ? {} : { display: "none" }}
         >
           <div className="mb-8">
-            <span className="text-[#1D4ED8] text-sm font-bold uppercase tracking-wider mb-2 block">
-              Step 4 of 6
-            </span>
             <h2
               className="text-3xl font-extrabold text-[#0B1F3A]"
               id="preferences-heading"
@@ -1109,48 +1146,21 @@ export function StudentProfileOnboarding({
           </form>
         </section>
 
-        <section
-          aria-labelledby="review-heading"
-          className={sectionCardClass}
-          style={activeStep === "review" ? {} : { display: "none" }}
+        <div
+          className="grid gap-10"
+          style={activeStep === "records" ? {} : { display: "none" }}
         >
-          <header>
-            <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Review</span>
-            <h2 id="review-heading">Review your profile</h2>
-            <p>Your saved sections remain editable. There is no final submission action in Phase B1.</p>
-          </header>
-          <div className="profile-review-grid">
-            <article>
-              <h3>Identity</h3>
-              <p>{identitySaved ? "Saved" : "Not saved yet"}</p>
-              <button className="profile-text-button" onClick={() => setActiveStep("identity")} type="button">
-                Edit identity
-              </button>
-            </article>
-            <article>
-              <h3>Academic Portfolio</h3>
-              <p>{completion.academicComplete ? "Complete" : "Needs more information"}</p>
-              <button className="profile-text-button" onClick={() => setActiveStep("academics")} type="button">
-                Edit academics
-              </button>
-            </article>
-            <article>
-              <h3>Higher-studies preferences</h3>
-              <p>{completion.preferencesComplete ? "Complete" : "Needs more information"}</p>
-              <button className="profile-text-button" onClick={() => setActiveStep("preferences")} type="button">
-                Edit preferences
-              </button>
-            </article>
+          {recordsSection}
+          <div>
+            <button
+              className="button bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={() => setActiveStep("preferences")}
+              type="button"
+            >
+              Back
+            </button>
           </div>
-          {completion.hints.length > 0 && (
-            <div className="profile-next-steps">
-              <h3>Suggested next steps</h3>
-              <ul>
-                {completion.hints.slice(0, 3).map((hint) => <li key={hint}>{hint}</li>)}
-              </ul>
-            </div>
-          )}
-        </section>
+        </div>
       </div>
     </div>
   );

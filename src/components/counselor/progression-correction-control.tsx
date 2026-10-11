@@ -199,7 +199,6 @@ export function ProgressionCorrectionControl({
           <input name="studentId" type="hidden" value={studentId} />
           <input name="eventId" type="hidden" value={eventId} />
           <div className="p-6 pb-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-600 block mb-1">Audited correction</span>
             <h5 id={`${prefix}-title`} className="text-lg font-bold text-[#0B1F3A] mb-2">{details.title}</h5>
             <p id={`${prefix}-description`} className="text-sm text-slate-600 leading-relaxed">{description}</p>
           </div>

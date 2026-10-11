@@ -5,6 +5,8 @@ import {
   isDepartmentForCourse,
 } from "@/lib/consultations/options";
 import {
+  GRADUATION_YEAR_STORAGE_MAXIMUM,
+  GRADUATION_YEAR_STORAGE_MINIMUM,
   PROFILE_COLLEGES,
   PROFILE_GRADUATION_YEARS,
 } from "@/lib/profiles/options";
@@ -437,8 +439,8 @@ const studentDirectoryRowSchema = z
     graduation_year: z
       .number()
       .int()
-      .min(PROFILE_GRADUATION_YEARS[0])
-      .max(PROFILE_GRADUATION_YEARS.at(-1) ?? 2040)
+      .min(GRADUATION_YEAR_STORAGE_MINIMUM)
+      .max(GRADUATION_YEAR_STORAGE_MAXIMUM)
       .nullable(),
     profile_state: z.enum(profileStateValues),
     completion_percentage: z.number().int().min(0).max(100),

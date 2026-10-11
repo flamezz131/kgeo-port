@@ -19,6 +19,7 @@ registerHooks({
       "@/lib/counselor/private-records": "./private-records.ts",
       "@/lib/validation/institutional-email":
         "../validation/institutional-email.ts",
+      "@/lib/auth/student-institutions": "../auth/student-institutions.ts",
     };
     const target = aliases[specifier];
     if (target) {
@@ -267,6 +268,40 @@ test("a valid metrics-only row is filtered-empty, while raw empty data is unavai
     assert.equal(filteredEmpty.metrics.totalPendingCount, 1);
   }
   assert.equal(unavailable.kind, "unavailable");
+});
+
+test("Student emails from KCT, KCLAS and KCTBS parse and other domains fail closed", () => {
+  for (const collegeEmail of [
+    "student@kct.ac.in",
+    "student@kclas.ac.in",
+    "student@kctbs.ac.in",
+  ]) {
+    const result = parseFollowUpWorkloadResponse(
+      [workloadRow({ college_email: collegeEmail })],
+      defaultQuery,
+      NOW,
+    );
+    assert.equal(result.kind, "ready", collegeEmail);
+  }
+
+  for (const collegeEmail of [
+    "student@student.kct.ac.in",
+    "student@sub.kclas.ac.in",
+    "student@kct.ac.in.fake.com",
+    "student@kctbs-ac.in",
+    "student@gmail.com",
+    "student@@kct.ac.in",
+  ]) {
+    assert.equal(
+      parseFollowUpWorkloadResponse(
+        [workloadRow({ college_email: collegeEmail })],
+        defaultQuery,
+        NOW,
+      ).kind,
+      "unavailable",
+      collegeEmail,
+    );
+  }
 });
 
 test("malformed sentinel mixtures, identity, audit, enum, count, and duplicate IDs fail closed", () => {

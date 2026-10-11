@@ -32,12 +32,10 @@ function SectionUnavailable({ title }: { title: string }) {
 }
 
 function SectionHeading({
-  eyebrow,
   title,
   id,
   aside,
 }: {
-  eyebrow: string;
   title: string;
   id?: string;
   aside?: React.ReactNode;
@@ -45,12 +43,7 @@ function SectionHeading({
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <span className="text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-          {eyebrow}
-        </span>
-        <h2 className="mt-1.5" id={id}>
-          {title}
-        </h2>
+        <h2 id={id}>{title}</h2>
       </div>
       {aside && (
         <span className="text-[0.78rem] font-medium text-slate-500">
@@ -70,7 +63,7 @@ function MetricCard({ metric }: { metric: DirectorMetricItem }) {
       <strong className="text-3xl font-extrabold tabular-nums leading-none tracking-tight text-[#0B1F3A]">
         {metric.value}
       </strong>
-      <p className="text-[0.72rem] leading-snug text-slate-400">
+      <p className="text-[0.72rem] leading-snug text-slate-500">
         {metric.description}
       </p>
     </article>
@@ -103,28 +96,30 @@ function AttentionSummary({
   const summary = summarizeDirectorAttention(attention.data);
 
   return (
-    <dl className="grid grid-cols-3 divide-x divide-[#E2E8F0]">
-      <div className="pr-3">
+    // Labels wrap to different lengths; pinning each number to the bottom of
+    // its cell keeps the three figures on one line.
+    <dl className="grid w-full grid-cols-3 divide-x divide-[#E2E8F0]">
+      <div className="flex flex-col justify-between gap-2 pr-4">
         <dt className="text-[0.65rem] font-extrabold uppercase tracking-[0.08em] text-slate-500">
           Current queue
         </dt>
-        <dd className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight text-[#0B1F3A]">
+        <dd className="text-3xl font-extrabold leading-none tabular-nums tracking-tight text-[#0B1F3A]">
           {summary.total}
         </dd>
       </div>
-      <div className="px-3">
+      <div className="flex flex-col justify-between gap-2 px-4">
         <dt className="text-[0.65rem] font-extrabold uppercase tracking-[0.08em] text-slate-500">
           High priority
         </dt>
-        <dd className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight text-rose-600">
+        <dd className="text-3xl font-extrabold leading-none tabular-nums tracking-tight text-rose-600">
           {summary.high}
         </dd>
       </div>
-      <div className="pl-3">
+      <div className="flex flex-col justify-between gap-2 pl-4">
         <dt className="text-[0.65rem] font-extrabold uppercase tracking-[0.08em] text-slate-500">
           Medium priority
         </dt>
-        <dd className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight text-amber-600">
+        <dd className="text-3xl font-extrabold leading-none tabular-nums tracking-tight text-amber-600">
           {summary.medium}
         </dd>
       </div>
@@ -445,10 +440,7 @@ export function DirectorDashboard({
     <div className="director-page flex flex-col gap-8">
       <header className="director-page-header flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-            Director dashboard
-          </span>
-          <h1 className="mt-2">Operational overview</h1>
+          <h1>Operational overview</h1>
           <p className="mt-2 max-w-2xl text-slate-500">
             Welcome, {dashboard.directorName}. Monitor current demand,
             exceptions, and counselor workload.
@@ -459,23 +451,29 @@ export function DirectorDashboard({
         </span>
       </header>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] xl:items-start">
+      {/* Both columns put their heading on the page and their content below
+          it, so the queue card lines up with the metric tiles beside it and
+          stretches to their height. */}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)]">
         <section
           aria-labelledby="director-attention-summary-heading"
-          className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:p-6"
+          className="flex flex-col"
         >
           <SectionHeading
-            eyebrow="Needs attention"
             title="Current queue"
             id="director-attention-summary-heading"
             aside="Up to 25 items"
           />
-          <AttentionSummary attention={dashboard.attention} />
+          <div className="flex flex-1 items-center rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:p-6">
+            <AttentionSummary attention={dashboard.attention} />
+          </div>
         </section>
 
-        <section aria-labelledby="director-primary-metrics-heading">
+        <section
+          aria-labelledby="director-primary-metrics-heading"
+          className="flex flex-col"
+        >
           <SectionHeading
-            eyebrow="System health"
             title="Primary metrics"
             id="director-primary-metrics-heading"
           />
@@ -483,12 +481,8 @@ export function DirectorDashboard({
         </section>
       </div>
 
-      <section
-        aria-labelledby="director-attention-heading"
-        className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:p-6"
-      >
+      <section aria-labelledby="director-attention-heading">
         <SectionHeading
-          eyebrow="Operational exceptions"
           title="Attention items"
           id="director-attention-heading"
           aside="High priority appears first."
@@ -496,12 +490,8 @@ export function DirectorDashboard({
         <AttentionItems attention={dashboard.attention} />
       </section>
 
-      <section
-        aria-labelledby="director-workload-heading"
-        className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:p-6"
-      >
+      <section aria-labelledby="director-workload-heading">
         <SectionHeading
-          eyebrow="Team operations"
           title="Counselor workload"
           id="director-workload-heading"
           aside="Up to 20 counselors"
@@ -511,7 +501,6 @@ export function DirectorDashboard({
 
       <section aria-labelledby="director-secondary-heading">
         <SectionHeading
-          eyebrow="Operating detail"
           title="Secondary metrics"
           id="director-secondary-heading"
         />

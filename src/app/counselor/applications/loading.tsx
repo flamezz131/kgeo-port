@@ -6,7 +6,6 @@ export default function CounselorApplicationsLoading() {
       className="counselor-page application-workspace-page"
       role="status"
     >
-      <span className="eyebrow">Counselor operations</span>
       <h1>Loading applications…</h1>
       <p className="muted">Preparing application metrics and results.</p>
 

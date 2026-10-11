@@ -67,6 +67,11 @@ Coverage states:
 | `202609180001_director_student_profile_detail.sql` | `25e021d6caed648de22eed9e52e33d1d27b8f4c9afe4a9e5f1a56ed8bf67ca5e` |
 | `202609210001_student_preference_courses_and_field.sql` | `b376ddb00647df548e01c4f723fb5c10efe43ae460ddee4bd2350e39bb6e4d29` |
 | `202609230001_student_preferences_merge2_tab.sql` | `8ee1f302da33c14e7ab93ee8dc5f17352e0f8a188b1bc473ab7920089c0313fe` |
+| `202609290001_fix_eligibility_function_syntax.sql` | `ae06ac7afe7ffbd69b6b9624779ef2ca1ec6a720fc7b67160d83e8b4a6deaae3` |
+| `202609290002_public_progress_funnel_validation.sql` | `721fd5a5c8210adfbe0a62af640ee1b17605c98f488be1f77c692acf4f5538d6` |
+| `202610080001_single_counselor_authorization.sql` | `05fe6d9a1623f8988a3a0faf510cad97a04fb40fe81254fa37d9a4465ed55970` |
+| `202610080002_student_multi_institution_auth.sql` | `61d9c4f449d02ce3087a6ad6a0fb316fe2a98900d660a170db5864589675d778` |
+| `202610080003_student_graduation_year_range.sql` | `8dc58379b5aae1dbb8c23a0c3bba2fe9c223b4fd77ad956f6c8515db05adb7f0` |
 
 ## Migration coverage matrix
 
@@ -612,6 +617,67 @@ in all twenty-eight migrations. Repeated names identify deliberate replacements.
   is removed. The Profile V2 supplement verifier
   `supabase/verification/202608250001_student_profile_v2_client_corrections.sql`
   expects the dropped trigger and no longer applies after this migration.
+- `202609290001_fix_eligibility_function_syntax.sql`: re-creates
+  `save_student_eligibility_assessment`,
+  `get_counselor_student_eligibility_assessments`, and
+  `get_director_latest_student_eligibility_assessment` with identical
+  signatures, return shapes and logic, replacing the schema-qualified SQL
+  special forms (`NULLIF`, `COALESCE`) that failed at run time with 42883.
+  `CREATE OR REPLACE` keeps owner, grants and comments. No data changes.
+- `202609290002_public_progress_funnel_validation.sql`: re-creates
+  `publish_kgeo_public_progress` with an added check that each published
+  funnel stage does not exceed the stage before it (initiated, submitted,
+  offers, acceptance, visa, enrolled). Stored figures are not changed.
+- `202610080001_single_counselor_authorization.sql`: forward-only Phase 3A
+  authorization cutover to the single institutional Counselor architecture.
+  It creates no table, column, policy, trigger, or index and changes no row.
+  A fail-closed preflight requires exactly one operational Counselor
+  (Counselor role, active profile, approved `counselor_accounts` row,
+  confirmed and unbanned Auth identity) and requires that Counselor to be the
+  reviewed institutional identity. It introduces the canonical helper
+  `public.is_approved_active_verified_counselor()`: zero arguments, boolean,
+  SQL, STABLE, SECURITY DEFINER, postgres owner, empty search path, EXECUTE
+  for `authenticated` only, true only when `auth.uid()` is that approved,
+  active, verified Counselor. It redefines
+  `public.is_active_primary_counselor_for_student(uuid)` as a temporary
+  compatibility authorization bridge: the historical name, signature, owner,
+  volatility, and security mode are retained because existing RLS policies,
+  triggers, Storage predicates, and RPCs still call it, but it no longer
+  means active Primary ownership. It now returns true when the caller
+  satisfies `is_approved_active_verified_counselor` and the supplied profile
+  has the Student role, with EXECUTE for `authenticated` only. Historical
+  `student_counselor_assignments` rows, constraints, indexes, and the
+  history-protection trigger are preserved unchanged as history; they are no
+  longer read by either helper. Continue with K-GEO and Director reassignment
+  are not retired by this migration. The current contract is validated by the
+  feature-specific read-only verifier
+  `supabase/verification/202610080001_single_counselor_authorization.sql`.
+  Canonical readiness still records the earlier Phase A1.4.2B body hash and
+  empty grantee list for `is_active_primary_counselor_for_student`; that
+  historical expectation is superseded for this helper by the supplement and
+  was deliberately not rewritten.
+- `202610080002_student_multi_institution_auth.sql`: extends public Student
+  registration from KCT-only to the exact approved Student institution
+  domains `@kct.ac.in`, `@kclas.ac.in` and `@kctbs.ac.in`. It changes exactly
+  two objects in one transaction behind a fail-closed preflight: it
+  re-creates `handle_new_user` so the public Student branch accepts the three
+  exact domains (owner, SECURITY DEFINER and search path retained; Counselor
+  and Director provisioning unchanged), and it replaces
+  `profiles_college_email_check` under the same name with explicit role
+  handling: Counselor and Director keep the generic valid-email rule, Student
+  requires one of the three exact domains, and any other role keeps the exact
+  `@kct.ac.in` rule. The constraint is added validated; no row is rewritten
+  and `profiles_full_name_check` is untouched. The institution selected in the
+  UI is never trusted by the database. Covered by
+  `src/lib/auth/student-multi-institution-migration.test.ts`.
+- `202610080003_student_graduation_year_range.sql`: widens the database
+  safety envelope `student_profiles_graduation_year_check` on
+  `student_profiles.graduation_year` from 2024-2040 to 2000-2100 behind a
+  fail-closed preflight. No other constraint, column, function, policy or
+  trigger changes; the constraint is added validated and no row is rewritten.
+  The selectable range (current calendar year, four years before and four
+  after) is enforced by application validation, not the database. Covered by
+  `src/lib/profiles/graduation-year-migration.test.ts`.
 
 The automatic-allocation supplement
 `supabase/verification/automatic_consultation_allocation_readiness.sql`

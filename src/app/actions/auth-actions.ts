@@ -2,10 +2,14 @@
 
 import { redirect } from "next/navigation";
 import { getSiteUrl } from "@/lib/env/site-url";
-import { getRoleHomePath } from "@/lib/auth/role-redirect";
+import { ROLE_HOME_PATHS, getRoleHomePath } from "@/lib/auth/role-redirect";
+import { getStudentAccessDecision } from "@/lib/permissions/student-access";
 import { createClient } from "@/lib/supabase/server";
 import { validateLogin, validateRegistration } from "@/lib/validation/auth";
 import type { ActionState } from "@/types";
+
+const studentOnlyLoginError =
+  "This sign-in page is for active, verified Student accounts only. K-GEO staff must use their dedicated staff portal.";
 
 export async function login(
   _previousState: ActionState,
@@ -25,24 +29,21 @@ export async function login(
     return { status: "error", message: "Email or password is incorrect." };
   }
 
-  const { data: profile, error: profileError } = await supabase
+  // This route signs in Students only. The portal decision comes from the
+  // trusted stored profile, never from the institution selected in the form.
+  const { data: loadedProfile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, role, is_active")
+    .select("id, college_email, full_name, role, is_active")
     .eq("id", data.user.id)
     .maybeSingle();
+  const profile = profileError ? null : loadedProfile;
+  const decision = getStudentAccessDecision(data.user, profile);
   const destination =
-    !profileError &&
-    profile?.id === data.user.id &&
-    profile.is_active
-      ? getRoleHomePath(profile.role)
-      : null;
+    decision === "allowed" && profile ? getRoleHomePath(profile.role) : null;
 
-  if (!destination) {
+  if (destination !== ROLE_HOME_PATHS.student) {
     await supabase.auth.signOut({ scope: "local" });
-    return {
-      status: "error",
-      message: "Your account is not currently authorized to access K-GEO.",
-    };
+    return { status: "error", message: studentOnlyLoginError };
   }
 
   redirect(destination);
@@ -88,6 +89,22 @@ export async function register(
 
 export async function logout() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Staff return to their own portal's sign-in page; everyone else to /login.
+  let destination = "/login";
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profile?.role === "counselor") destination = "/counselor/login";
+    if (profile?.role === "director") destination = "/director/login";
+  }
+
   await supabase.auth.signOut();
-  redirect("/login");
+  redirect(destination);
 }

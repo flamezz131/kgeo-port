@@ -1,12 +1,16 @@
 import type { Database } from "@/types/database";
 
-export type ProfileStep = "identity" | "academics" | "preferences" | "review";
+export type ProfileStep =
+  | "identity"
+  | "academics"
+  | "preferences"
+  | "records";
 
 export type ProfileActionState = {
   status: "idle" | "error" | "success";
   message?: string;
   errors?: Record<string, string[]>;
-  savedSection?: Exclude<ProfileStep, "review">;
+  savedSection?: Exclude<ProfileStep, "records">;
 };
 
 export const initialProfileActionState: ProfileActionState = {
@@ -84,3 +88,34 @@ export type ProfileCompletionPresentation = {
   readyForCounseling: boolean;
   hints: string[];
 };
+
+export type ProfileRequirementItem = {
+  label: string;
+  complete: boolean;
+  step: ProfileStep;
+};
+
+export type ProfileRequirementSection = {
+  id: "academic" | "preferences" | "readiness";
+  label: string;
+  complete: boolean;
+  items: ProfileRequirementItem[];
+};
+
+export type ProfileRequirementProfileFields = Pick<
+  StudentProfileFormValues,
+  | "roll_number"
+  | "personal_email"
+  | "mobile_number"
+  | "college"
+  | "course"
+  | "department"
+  | "graduation_year"
+  | "cgpa"
+  | "cgpa_unavailable"
+>;
+
+export type ProfileRequirementPreferenceFields = Pick<
+  StudentPreferenceFormValues,
+  "higher_studies_interest" | "preferred_study_level" | "target_intake"
+>;

@@ -98,7 +98,6 @@ export function GlobalReadinessAssessmentPage({
   return (
     <section className="readiness-workspace">
       <header className="student-workspace-section-header">
-        <span className="eyebrow">Counselor-awarded, evidence-informed index</span>
         <h2>Global Master&apos;s Readiness</h2>
         <p>Review canonical K-GEO evidence separately from scoring. Every submission creates a permanent revision.</p>
       </header>

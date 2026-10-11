@@ -90,6 +90,62 @@ test("login destination comes from profiles and ignores next or redirect input",
   assert.doesNotMatch(roleRedirectSource, /next|redirect_to|searchParams/i);
 });
 
+test("the Student login action admits only a valid Student profile and signs everyone else out", () => {
+  const loginAction =
+    loginActionSource.match(
+      /export async function login\([\s\S]*?\r?\n\}\r?\n\r?\nexport async function register/,
+    )?.[0] ?? "";
+  assert.notEqual(loginAction, "");
+
+  // Institution and exact domain are validated before any authentication.
+  assert.ok(
+    loginAction.indexOf("validateLogin(formData)") <
+      loginAction.indexOf("signInWithPassword"),
+  );
+  // The action itself never reads the selected institution.
+  assert.doesNotMatch(
+    loginAction,
+    /formData\.get|\.institution\b|institution\s*[:=]/,
+  );
+
+  // The trusted profile decides, using the existing Student access rules.
+  assert.match(
+    loginAction,
+    /getStudentAccessDecision\(data\.user, profile\)/,
+  );
+  assert.match(
+    loginAction,
+    /decision === "allowed" && profile \? getRoleHomePath\(profile\.role\) : null/,
+  );
+  assert.match(
+    loginAction,
+    /if \(destination !== ROLE_HOME_PATHS\.student\) \{\s*await supabase\.auth\.signOut\(\{ scope: "local" \}\);\s*return \{ status: "error", message: studentOnlyLoginError \};\s*\}\s*redirect\(destination\);/,
+  );
+
+  // Exactly one redirect exists, and no staff portal is reachable from here.
+  assert.equal(loginAction.match(/redirect\(/g)?.length, 1);
+  assert.doesNotMatch(
+    loginAction,
+    /\/(?:director|counselor|admin)\b|ROLE_HOME_PATHS\.(?:director|counselor|admin)/,
+  );
+  assert.match(roleRedirectSource, /student: "\/student\/dashboard"/);
+});
+
+test("the Student login message is generic and names no specific staff route", () => {
+  const message =
+    loginActionSource.match(/const studentOnlyLoginError =\s*"([^"]+)";/)?.[1] ??
+    "";
+  assert.match(message, /Student accounts only/);
+  assert.match(message, /staff/i);
+  assert.doesNotMatch(message, /director|counselor|admin|\/login|password/i);
+});
+
+test("the login page describes a Student sign-in and offers no staff route", () => {
+  assert.match(loginPageSource, /Students sign in here/);
+  assert.doesNotMatch(loginPageSource, /correct portal/i);
+  assert.doesNotMatch(loginPageSource, /director|counselor|admin|staff/i);
+});
+
 test("student shell has its own server-side role guard", () => {
   assert.match(studentLayoutSource, /import \{ requireStudent \}/);
   assert.match(studentLayoutSource, /await requireStudent\(\)/);

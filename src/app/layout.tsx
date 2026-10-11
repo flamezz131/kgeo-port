@@ -16,7 +16,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html
+      lang="en"
+      className={cn("font-sans", geist.variable)}
+      data-scroll-behavior="smooth"
+    >
       <body>{children}</body>
     </html>
   );

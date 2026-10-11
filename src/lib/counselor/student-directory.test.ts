@@ -20,6 +20,7 @@ registerHooks({
       "@/lib/profiles/options": "../profiles/options.ts",
       "@/lib/validation/institutional-email":
         "../validation/institutional-email.ts",
+      "@/lib/auth/student-institutions": "../auth/student-institutions.ts",
     };
     const target = aliases[specifier];
     if (target) {
@@ -235,6 +236,71 @@ test("RPC payload uses exact named arguments, fixed page size, and no private fi
     JSON.stringify(args),
     /personal_email|mobile_number|cgpa|backlog|role|metadata/i,
   );
+});
+
+test("Student emails from KCT, KCLAS and KCTBS parse and other domains fail closed", async () => {
+  for (const collegeEmail of [
+    "ananya@kct.ac.in",
+    "ananya@kclas.ac.in",
+    "ananya@kctbs.ac.in",
+  ]) {
+    const result = await fetchStudentDirectory(
+      parseStudentDirectoryQuery({}),
+      async () => ({
+        data: [{ ...completeRow, college_email: collegeEmail }],
+        error: null,
+      }),
+    );
+    assert.equal(result.kind, "ready", collegeEmail);
+    if (result.kind === "ready") {
+      assert.equal(result.students[0].college_email, collegeEmail);
+    }
+  }
+
+  for (const collegeEmail of [
+    "ananya@student.kct.ac.in",
+    "ananya@sub.kclas.ac.in",
+    "ananya@kct.ac.in.fake.com",
+    "ananya@kctbs-ac.in",
+    "ananya@gmail.com",
+    "ananya@@kct.ac.in",
+  ]) {
+    const result = await fetchStudentDirectory(
+      parseStudentDirectoryQuery({}),
+      async () => ({
+        data: [{ ...completeRow, college_email: collegeEmail }],
+        error: null,
+      }),
+    );
+    assert.equal(result.kind, "unavailable", collegeEmail);
+  }
+});
+
+test("every stored graduation year inside the database envelope parses", async () => {
+  for (const graduationYear of [2000, 2022, 2023, 2024, 2035, 2040, 2041, 2100]) {
+    const result = await fetchStudentDirectory(
+      parseStudentDirectoryQuery({}),
+      async () => ({
+        data: [{ ...completeRow, graduation_year: graduationYear }],
+        error: null,
+      }),
+    );
+    assert.equal(result.kind, "ready", String(graduationYear));
+    if (result.kind === "ready") {
+      assert.equal(result.students[0].graduation_year, graduationYear);
+    }
+  }
+
+  for (const graduationYear of [1999, 2101, 2026.5, "2026"]) {
+    const result = await fetchStudentDirectory(
+      parseStudentDirectoryQuery({}),
+      async () => ({
+        data: [{ ...completeRow, graduation_year: graduationYear }],
+        error: null,
+      }),
+    );
+    assert.equal(result.kind, "unavailable", String(graduationYear));
+  }
 });
 
 test("valid complete and profile-not-started rows are runtime mapped", async () => {

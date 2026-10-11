@@ -8,6 +8,7 @@ import {
   type CounselorEligibilityAssessment,
 } from "@/lib/counselor/eligibility";
 import { isStudent360StudentId } from "@/lib/counselor/student-profile";
+import { logDataLoadFailure } from "@/lib/diagnostics/log-data-load-failure";
 import { requireCounselor } from "@/lib/permissions";
 
 const contextProfileSchema = z
@@ -133,12 +134,18 @@ export async function loadCounselorEligibilityPage(
     }),
   ]);
 
-  if (
-    profile.error ||
-    preference.error ||
-    tests.error ||
-    assessmentHistory.error
-  ) {
+  const queryFailure = [
+    ["Eligibility context (student_profiles)", profile.error],
+    ["Eligibility context (student_preferences)", preference.error],
+    ["Eligibility context (student_test_scores)", tests.error],
+    [
+      "Eligibility history (get_counselor_student_eligibility_assessments)",
+      assessmentHistory.error,
+    ],
+  ] as const;
+  const failedQuery = queryFailure.find(([, failure]) => failure);
+  if (failedQuery) {
+    logDataLoadFailure(failedQuery[0], failedQuery[1]);
     return { kind: "unavailable" };
   }
 
@@ -163,6 +170,10 @@ export async function loadCounselorEligibilityPage(
     parsedTests.data.some((score) => score.student_id !== studentId) ||
     assessments === null
   ) {
+    logDataLoadFailure(
+      "Eligibility page",
+      "Loaded rows did not match the expected shape.",
+    );
     return { kind: "unavailable" };
   }
 

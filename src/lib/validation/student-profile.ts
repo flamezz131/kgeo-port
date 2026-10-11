@@ -8,7 +8,9 @@ import {
   STUDENT_PLANNING_STAGE_OPTIONS,
   STUDY_MODE_OPTIONS,
   TARGET_INTAKE_SEASONS,
+  getGraduationYearRange,
   isProfileCollege,
+  isSelectableGraduationYear,
 } from "@/lib/profiles/options";
 import {
   isCourse,
@@ -117,71 +119,108 @@ function toValidationResult<T>(result: z.ZodSafeParseResult<T>): ValidationResul
   return { success: false, errors };
 }
 
-export const studentIdentitySchema = z
-  .object({
-    fullName: canonicalFullNameSchema,
-    rollNumber: z
-      .string({ error: "Enter your roll number." })
-      .trim()
-      .min(1, "Enter your roll number.")
-      .max(50, "Roll number must not exceed 50 characters.")
-      .transform((value) => value.toUpperCase()),
-    personalEmail: z
-      .string({ error: "Enter your personal email address." })
-      .trim()
-      .toLowerCase()
-      .max(320, "Personal email must not exceed 320 characters.")
-      .pipe(z.email("Enter a valid personal email address.")),
-    mobileNumber: z
-      .string({ error: "Enter your mobile number." })
-      .trim()
-      .regex(/^\d{10}$/, "Mobile number must contain exactly 10 digits."),
-    college: z
-      .string({ error: "Choose your college." })
-      .trim()
-      .refine(isProfileCollege, "Choose a supported college."),
-    course: z
-      .string({ error: "Choose your course." })
-      .refine(isCourse, "Choose a valid course."),
-    department: z
-      .string({ error: "Choose your department." })
-      .trim()
-      .min(1, "Choose your department."),
-    currentYear: optionalInteger(1, 8, "Choose a current year from 1 to 8."),
-    currentSemester: optionalInteger(
-      1,
-      16,
-      "Choose a current semester from 1 to 16.",
-    ),
-    graduationYear: requiredInteger(
-      2024,
-      2040,
-      "Choose a graduation year from 2024 to 2040.",
-    ),
-  })
-  .strip()
-  .superRefine((data, context) => {
-    if (!isDepartmentForCourse(data.course, data.department)) {
-      context.addIssue({
-        code: "custom",
-        path: ["department"],
-        message: "Choose a department available for the selected course.",
-      });
-    }
+export type GraduationYearValidationOptions = {
+  // Defaults to the current calendar year at validation time.
+  referenceYear?: number;
+  // The Student's already-stored year, loaded by trusted server code. It
+  // stays acceptable so an edit can never be forced to change it.
+  storedGraduationYear?: number | null;
+};
 
-    if (
-      data.currentYear !== null &&
-      data.currentSemester !== null &&
-      (data.currentSemester < (data.currentYear - 1) * 2 + 1 ||
-        data.currentSemester > data.currentYear * 2)
-    ) {
+// The range is resolved on every parse, so it follows the calendar year even
+// in a long-running server process.
+function graduationYearField(options: GraduationYearValidationOptions) {
+  return z
+    .string({ error: "Choose a graduation year." })
+    .trim()
+    .regex(/^\d+$/, "Choose a valid graduation year.")
+    .transform(Number)
+    .superRefine((year, context) => {
+      const referenceYear = options.referenceYear ?? new Date().getFullYear();
+      if (
+        isSelectableGraduationYear(
+          year,
+          referenceYear,
+          options.storedGraduationYear ?? null,
+        )
+      ) {
+        return;
+      }
+      const { minimum, maximum } = getGraduationYearRange(referenceYear);
       context.addIssue({
         code: "custom",
-        path: ["currentSemester"],
-        message: "Current semester must match the selected academic year.",
+        message: `Choose a graduation year from ${minimum} to ${maximum}.`,
       });
-    }
-  });
+    });
+}
+
+function buildStudentIdentitySchema(
+  graduationYearOptions: GraduationYearValidationOptions = {},
+) {
+  return z
+    .object({
+      fullName: canonicalFullNameSchema,
+      rollNumber: z
+        .string({ error: "Enter your roll number." })
+        .trim()
+        .min(1, "Enter your roll number.")
+        .max(50, "Roll number must not exceed 50 characters.")
+        .transform((value) => value.toUpperCase()),
+      personalEmail: z
+        .string({ error: "Enter your personal email address." })
+        .trim()
+        .toLowerCase()
+        .max(320, "Personal email must not exceed 320 characters.")
+        .pipe(z.email("Enter a valid personal email address.")),
+      mobileNumber: z
+        .string({ error: "Enter your mobile number." })
+        .trim()
+        .regex(/^\d{10}$/, "Mobile number must contain exactly 10 digits."),
+      college: z
+        .string({ error: "Choose your college." })
+        .trim()
+        .refine(isProfileCollege, "Choose a supported college."),
+      course: z
+        .string({ error: "Choose your course." })
+        .refine(isCourse, "Choose a valid course."),
+      department: z
+        .string({ error: "Choose your department." })
+        .trim()
+        .min(1, "Choose your department."),
+      currentYear: optionalInteger(1, 4, "Choose a current year from 1 to 4."),
+      currentSemester: optionalInteger(
+        1,
+        8,
+        "Choose a current semester from 1 to 8.",
+      ),
+      graduationYear: graduationYearField(graduationYearOptions),
+    })
+    .strip()
+    .superRefine((data, context) => {
+      if (!isDepartmentForCourse(data.course, data.department)) {
+        context.addIssue({
+          code: "custom",
+          path: ["department"],
+          message: "Choose a department available for the selected course.",
+        });
+      }
+
+      if (
+        data.currentYear !== null &&
+        data.currentSemester !== null &&
+        (data.currentSemester < (data.currentYear - 1) * 2 + 1 ||
+          data.currentSemester > data.currentYear * 2)
+      ) {
+        context.addIssue({
+          code: "custom",
+          path: ["currentSemester"],
+          message: "Current semester must match the selected academic year.",
+        });
+      }
+    });
+}
+
+export const studentIdentitySchema = buildStudentIdentitySchema();
 
 export const studentAcademicsSchema = z
   .object({
@@ -399,6 +438,7 @@ export type StudentPreferencesInput = z.infer<typeof studentPreferencesSchema>;
 
 export function validateStudentIdentity(
   formData: FormData,
+  graduationYearOptions: GraduationYearValidationOptions = {},
 ): ValidationResult<StudentIdentityInput> {
   const duplicateErrors = getDuplicateFieldErrors(formData, [
     "fullName",
@@ -417,7 +457,7 @@ export function validateStudentIdentity(
   }
 
   return toValidationResult(
-    studentIdentitySchema.safeParse({
+    buildStudentIdentitySchema(graduationYearOptions).safeParse({
       fullName: formData.get("fullName"),
       rollNumber: formData.get("rollNumber"),
       personalEmail: formData.get("personalEmail"),

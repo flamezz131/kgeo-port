@@ -798,7 +798,6 @@ export function CounselorPrivateRecords({
         className="student-360-section counselor-private-section"
       >
         <header className="student-360-section-heading">
-          <span className="eyebrow">Section 7 · Counselor-owned record</span>
           <h2 id="student-360-private-notes">
             {COUNSELOR_PRIVATE_RECORD_LABELS.notes}
           </h2>
@@ -850,7 +849,6 @@ export function CounselorPrivateRecords({
         className="student-360-section counselor-private-section"
       >
         <header className="student-360-section-heading">
-          <span className="eyebrow">Section 8 · Operational action</span>
           <h2 id="student-360-follow-ups">
             {COUNSELOR_PRIVATE_RECORD_LABELS.followUps}
           </h2>

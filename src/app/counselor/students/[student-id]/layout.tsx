@@ -18,7 +18,6 @@ export default async function CounselorStudentWorkspaceLayout({
     return (
       <div className="flex flex-col gap-6">
         <PageHeader
-          eyebrow="Counselor Student Workspace"
           title="Student Workspace is temporarily unavailable."
         />
         <StateBlock

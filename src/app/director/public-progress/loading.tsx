@@ -1,7 +1,6 @@
 export default function DirectorPublicProgressLoading() {
   return (
     <div className="director-page director-loading" aria-busy="true">
-      <span className="eyebrow">Website publishing</span>
       <h1>K-GEO Public Statistics</h1>
       <p>Loading the latest published figures…</p>
       <div className="director-loading-grid" aria-hidden="true">

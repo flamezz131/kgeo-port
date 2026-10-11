@@ -6,7 +6,6 @@ export default function CounselorFollowUpsLoading() {
       className="counselor-page follow-up-workload-page"
       role="status"
     >
-      <span className="eyebrow">Counselor workload</span>
       <h1>Loading follow-ups…</h1>
       <p className="muted">Preparing the current follow-up workload.</p>
 

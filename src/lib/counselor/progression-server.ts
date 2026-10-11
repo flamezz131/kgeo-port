@@ -8,6 +8,7 @@ import {
 } from "@/lib/counselor/progression";
 import { isStudent360StudentId } from "@/lib/counselor/student-profile";
 import { verifyPrimaryCounselorCaseAccess } from "@/lib/counselor/case-ownership-server";
+import { logDataLoadFailure } from "@/lib/diagnostics/log-data-load-failure";
 import { requireCounselor } from "@/lib/permissions";
 
 export async function loadCounselorStudentProgression(
@@ -24,7 +25,12 @@ export async function loadCounselorStudentProgression(
   );
   if (!caseAccess.valid) return { kind: "unavailable" };
 
-  return fetchCounselorStudentProgression(
+  const failures: Array<{ section: string; failure: unknown }> = [];
+  const remember = (section: string, failure: unknown) => {
+    if (failure) failures.push({ section, failure });
+  };
+
+  const result = await fetchCounselorStudentProgression(
     trustedStudentId,
     progressionPage,
     {
@@ -34,6 +40,7 @@ export async function loadCounselorStudentProgression(
           .select(OFFICIAL_PROGRESSION_CURRENT_COLUMNS)
           .eq("student_id", trustedStudentId)
           .maybeSingle();
+        remember("Official progression (current)", error);
         return { data, error };
       },
       loadHistory: async (from, to) => {
@@ -46,6 +53,7 @@ export async function loadCounselorStudentProgression(
           .order("changed_at", { ascending: false })
           .order("id", { ascending: false })
           .range(from, to);
+        remember("Official progression (history)", error);
         return { data, error, count };
       },
       loadCorrectionContext: async (eventIds) => {
@@ -56,8 +64,21 @@ export async function loadCounselorStudentProgression(
             p_event_ids: eventIds,
           },
         );
+        remember(
+          "Official progression (get_counselor_progression_correction_context)",
+          error,
+        );
         return { data, error };
       },
     },
   );
+
+  if (result.kind === "unavailable") {
+    const failure = failures.at(0);
+    logDataLoadFailure(
+      failure?.section ?? "Official progression",
+      failure?.failure ?? "Loaded rows failed the progression consistency check.",
+    );
+  }
+  return result;
 }

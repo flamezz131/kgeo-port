@@ -276,7 +276,7 @@ export function RoadmapTaskTracker({ tasks }: { tasks: RoadmapTask[] }) {
                           : [];
 
                         return (
-                          <div key={primaryTask.id} className={`bg-white border rounded-xl p-4 transition-colors ${groupStatus === 'completed' ? 'border-gray-200 opacity-60' : groupStatus === 'in_progress' ? 'border-blue-300 ring-1 ring-blue-100' : 'border-gray-200 hover:border-blue-300'}`}>
+                          <div key={primaryTask.id} className={`border rounded-xl p-4 transition-colors ${groupStatus === 'completed' ? 'bg-gray-50 border-gray-200' : groupStatus === 'in_progress' ? 'bg-white border-blue-300 ring-1 ring-blue-100' : 'bg-white border-gray-200 hover:border-blue-300'}`}>
                             <div className="flex items-start gap-4">
                               <button 
                                 disabled={isUpdating}
@@ -295,7 +295,7 @@ export function RoadmapTaskTracker({ tasks }: { tasks: RoadmapTask[] }) {
                               
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Step {(stepIndex + 1).toString().padStart(2, '0')}</span>
+                                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Step {(stepIndex + 1).toString().padStart(2, '0')}</span>
                                   {isMulti && <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{taskGroup.length} Actions Grouped</span>}
                                   {groupStatus === 'in_progress' && <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded ml-auto">IN PROGRESS</span>}
                                 </div>
@@ -308,7 +308,7 @@ export function RoadmapTaskTracker({ tasks }: { tasks: RoadmapTask[] }) {
 
                                 {isMulti && subContexts.length > 0 && (
                                   <div className="mt-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Applies to:</p>
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Applies to:</p>
                                     <ul className="list-disc pl-4 space-y-1">
                                       {subContexts.map((ctx: string, i: number) => (
                                         <li key={i} className="text-xs font-medium text-gray-600">{ctx}</li>

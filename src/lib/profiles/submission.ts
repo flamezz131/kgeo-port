@@ -1,5 +1,6 @@
 import type { Database } from "@/types/database";
 import type { ProfileActionState } from "@/lib/profiles/types";
+import { isSelectableGraduationYear } from "@/lib/profiles/options";
 import {
   validateStudentAcademics,
   validateStudentIdentity,
@@ -23,7 +24,37 @@ export type StudentIdentitySavePayload =
 
 export type StudentIdentityStore = {
   save: (payload: StudentIdentitySavePayload) => Promise<MutationResult>;
+  // Returns the Student's currently stored graduation year, or null. Used
+  // only so that an already-stored year outside the selectable range is not
+  // lost when the Student edits other identity fields.
+  loadStoredGraduationYear?: () => Promise<number | null>;
 };
+
+async function resolveStoredGraduationYear(
+  formData: FormData,
+  store: StudentIdentityStore,
+): Promise<number | null> {
+  if (!store.loadStoredGraduationYear) return null;
+
+  const submitted = formData.get("graduationYear");
+  if (
+    typeof submitted !== "string" ||
+    !/^\d+$/.test(submitted.trim()) ||
+    isSelectableGraduationYear(Number(submitted.trim()))
+  ) {
+    return null;
+  }
+
+  try {
+    const storedYear = await store.loadStoredGraduationYear();
+    return typeof storedYear === "number" && Number.isInteger(storedYear)
+      ? storedYear
+      : null;
+  } catch {
+    // Fail closed: without a trusted stored value only the range is accepted.
+    return null;
+  }
+}
 
 export type ProfileSectionStore<InsertPayload, UpdatePayload> = {
   findExisting: () => Promise<ExistenceResult>;
@@ -114,7 +145,9 @@ export async function submitStudentIdentity(
   formData: FormData,
   store: StudentIdentityStore,
 ): Promise<ProfileActionState> {
-  const validation = validateStudentIdentity(formData);
+  const validation = validateStudentIdentity(formData, {
+    storedGraduationYear: await resolveStoredGraduationYear(formData, store),
+  });
   if (!validation.success) {
     return {
       status: "error",

@@ -23,7 +23,6 @@ export default async function DirectorStudentProfilePage({
   if (result.kind !== "ready") {
     return (
       <section className="counselor-page student-360-unavailable" role="alert">
-        <span className="eyebrow">Director student profile</span>
         <h1>Student profile is temporarily unavailable.</h1>
         <p>Please refresh the page and try again shortly.</p>
       </section>

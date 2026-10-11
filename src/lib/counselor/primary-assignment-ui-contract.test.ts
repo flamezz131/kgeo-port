@@ -13,7 +13,7 @@ const director = source("../../components/director/director-operational-oversigh
 
 test("Counselor Students clearly separates My Students from the organization directory", () => {
   assert.match(page, /<MyPrimaryStudents result=\{primaryStudents\}/);
-  assert.match(page, /Organization-wide students/);
+  assert.match(page, /title="Student directory"/);
   assert.match(page, /not a Primary Counselor assignment list/);
   // Title now reaches the shared SectionHeader as a prop rather than inline text.
   assert.match(component, /title="My Students"/);

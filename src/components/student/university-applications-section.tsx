@@ -22,12 +22,11 @@ export function StudentUniversityApplicationsSkeleton() {
     <section
       aria-busy="true"
       aria-labelledby={SECTION_HEADING_ID}
-      className="panel student-university-applications"
+      className="student-university-applications"
       role="status"
     >
       <div className="student-university-applications-heading">
         <div>
-          <span className="eyebrow">Applications</span>
           <h2 id={SECTION_HEADING_ID}>My university applications</h2>
           <p>
             These application statuses are updated by the K-GEO counseling
@@ -65,11 +64,10 @@ export async function StudentUniversityApplicationsSection() {
   return (
     <section
       aria-labelledby={SECTION_HEADING_ID}
-      className="panel student-university-applications"
+      className="student-university-applications"
     >
       <div className="student-university-applications-heading">
         <div>
-          <span className="eyebrow">Applications</span>
           <h2 id={SECTION_HEADING_ID}>My university applications</h2>
           <p>
             These application statuses are updated by the K-GEO counseling
@@ -85,7 +83,7 @@ export async function StudentUniversityApplicationsSection() {
           <p>Please try again later.</p>
         </div>
       ) : result.applications.length === 0 ? (
-        <div className="student-university-application-message">
+        <div className="student-university-application-message student-university-application-empty">
           <h3>No university applications have been added yet.</h3>
           <p>
             Your K-GEO counselor will add application details when university

@@ -152,7 +152,6 @@ export function CounselorEligibilityAssessmentPage({
   return (
     <section className="eligibility-workspace">
       <header className="student-workspace-section-header">
-        <span className="eyebrow">Counselor professional assessment</span>
         <h2>Eligibility Assessment</h2>
         <p>
           Review Student-provided facts, then save a professional assessment.

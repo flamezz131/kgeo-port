@@ -77,7 +77,6 @@ export function ApplicationJourneySection({
       className="student-workspace-panel application-journey-section"
     >
       <header className="student-360-section-heading">
-        <span className="eyebrow">Separated operational lifecycle</span>
         <h2 id="application-journey-heading">Application Journey</h2>
         <p>
           Track the application, university decision, offer, Student decision,

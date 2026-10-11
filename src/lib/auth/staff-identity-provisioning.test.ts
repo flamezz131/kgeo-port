@@ -394,9 +394,14 @@ test("preparation validates role-specific email hash expiry and replacement", ()
 });
 
 test("public registration remains exact-KCT student-only", () => {
+  // Application-level Student validation accepts exactly the three Student
+  // institution domains from one contract. The database rule simulated below
+  // is still exact-KCT until its own forward migration.
+  assert.match(registrationValidationSource, /STUDENT_INSTITUTION_DOMAINS/);
+  assert.doesNotMatch(registrationValidationSource, /ac\.in|endsWith/);
   assert.match(
-    registrationValidationSource,
-    /INSTITUTIONAL_EMAIL_DOMAIN = "kct\.ac\.in"/,
+    read("./student-institutions.ts"),
+    /STUDENT_INSTITUTION_DOMAINS = \{\s*KCT: "kct\.ac\.in",\s*KCLAS: "kclas\.ac\.in",\s*KCTBS: "kctbs\.ac\.in",\s*\} as const/,
   );
   assert.match(registrationActionSource, /supabase\.auth\.signUp/);
   assert.match(registrationActionSource, /data:\s*\{\s*full_name:/);

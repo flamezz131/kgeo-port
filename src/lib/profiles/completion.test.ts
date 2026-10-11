@@ -4,9 +4,21 @@ import test from "node:test";
 import type { StudentProfileCompletionRow } from "./types";
 
 const require = createRequire(import.meta.url);
-const { mapProfileCompletion } = require(
+const { buildProfileRequirementChecklist, mapProfileCompletion } = require(
   "./completion.ts"
 ) as typeof import("./completion");
+
+const savedIdentity = {
+  roll_number: "21BCS001",
+  personal_email: "student@example.com",
+  mobile_number: "9876543210",
+  college: "Kumaraguru College of Technology",
+  course: "B.E.",
+  department: "Computer Science and Engineering",
+  graduation_year: 2027,
+  cgpa: null,
+  cgpa_unavailable: false,
+};
 
 function completionRow(
   overrides: Partial<StudentProfileCompletionRow> = {},
@@ -105,4 +117,74 @@ test("malformed completion rows fail closed instead of claiming readiness", () =
   assert.equal(presentation.percentage, 0);
   assert.equal(presentation.readyForCounseling, false);
   assert.equal(presentation.ctaLabel, "Continue Profile");
+});
+
+test("requirement checklist marks every essential field missing before a profile exists", () => {
+  const [academic, preferences, readiness] = buildProfileRequirementChecklist(
+    { academicComplete: false, preferencesComplete: false, readyForCounseling: false },
+    null,
+    null,
+  );
+
+  assert.equal(academic.label, "Academic section");
+  assert.equal(academic.complete, false);
+  assert.equal(academic.items.length, 8);
+  assert.ok(academic.items.every((item) => !item.complete));
+  assert.equal(preferences.label, "Preferences");
+  assert.equal(preferences.items.length, 3);
+  assert.ok(preferences.items.every((item) => !item.complete));
+  assert.equal(readiness.label, "Ready for counseling");
+  assert.equal(readiness.complete, false);
+  assert.deepEqual(readiness.items, []);
+});
+
+test("requirement checklist isolates the fields still required", () => {
+  const [academic, preferences] = buildProfileRequirementChecklist(
+    { academicComplete: false, preferencesComplete: false, readyForCounseling: false },
+    savedIdentity,
+    {
+      higher_studies_interest: "interested",
+      preferred_study_level: null,
+      target_intake: null,
+    },
+  );
+
+  assert.deepEqual(
+    academic.items.filter((item) => !item.complete).map((item) => item.label),
+    ["CGPA"],
+  );
+  assert.deepEqual(
+    preferences.items
+      .filter((item) => !item.complete)
+      .map((item) => item.label),
+    ["Study level", "Target intake"],
+  );
+  assert.deepEqual(
+    academic.items.filter((item) => !item.complete).map((item) => item.step),
+    ["academics"],
+  );
+});
+
+test("requirement checklist accepts an unavailable CGPA", () => {
+  const [academic] = buildProfileRequirementChecklist(
+    { academicComplete: false, preferencesComplete: false, readyForCounseling: false },
+    { ...savedIdentity, cgpa_unavailable: true },
+    null,
+  );
+
+  assert.ok(academic.items.every((item) => item.complete));
+});
+
+test("requirement checklist defers to database-derived section status", () => {
+  const [academic, preferences, readiness] = buildProfileRequirementChecklist(
+    { academicComplete: true, preferencesComplete: true, readyForCounseling: true },
+    savedIdentity,
+    null,
+  );
+
+  assert.equal(academic.complete, true);
+  assert.ok(academic.items.every((item) => item.complete));
+  assert.equal(preferences.complete, true);
+  assert.ok(preferences.items.every((item) => item.complete));
+  assert.equal(readiness.complete, true);
 });

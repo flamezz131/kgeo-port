@@ -112,6 +112,9 @@ alter table recommendation.pr_insights enable row level security;
 alter table recommendation.universities enable row level security;
 alter table recommendation.programs enable row level security;
 alter table recommendation.university_programs enable row level security;
+alter table recommendation.llm_call_log enable row level security;
+
+create policy "admin only log access" on recommendation.llm_call_log for all using (false);
 
 create policy "students manage own intake" on recommendation.pr_intake
   for all using (student_id = auth.uid());
@@ -201,7 +204,8 @@ alter table recommendation.pr_intake
   add column if not exists research_text text,
   add column if not exists other_work_text text,
   add column if not exists resume_path text,
-  add column if not exists competitive_exams jsonb not null default '[]'::jsonb;
+  add column if not exists competitive_exams jsonb not null default '[]'::jsonb,
+  add column if not exists ai_consent boolean not null default false;
 
 -- 2. Add CHECK constraints for array lengths
 alter table recommendation.pr_intake
@@ -222,13 +226,9 @@ create policy "students update own intake" on recommendation.pr_intake
   for update using (student_id = auth.uid()) with check (student_id = auth.uid());
 
 -- 4. Add counselor read access
-create policy "counselors read all intake" on recommendation.pr_intake
+create policy "counselors read assigned intake" on recommendation.pr_intake
   for select using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid()
-      and profiles.role = 'counselor'::public.user_role
-    )
+    public.is_active_primary_counselor_for_student(student_id)
   );
 
 -- 5. Bucket renaming for recommendation_items

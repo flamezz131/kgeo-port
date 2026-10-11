@@ -59,9 +59,6 @@ export function CounselorStudentWorkspaceShell({
 
       <header className="grid gap-6 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:p-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] xl:items-start xl:gap-8">
         <div className="min-w-0">
-          <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[var(--brand-600)]">
-            Counselor Student Workspace
-          </span>
           <h1 className="mt-2 break-words">{workspace.fullName}</h1>
           <p className="mt-2 text-[var(--muted)]">
             {provided(profile?.course)}

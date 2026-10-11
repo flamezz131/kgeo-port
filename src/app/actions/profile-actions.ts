@@ -18,12 +18,20 @@ export async function saveStudentIdentity(
   _previousState: ProfileActionState,
   formData: FormData,
 ): Promise<ProfileActionState> {
-  const { supabase } = await requireStudent();
+  const { supabase, user } = await requireStudent();
 
   const state = await submitStudentIdentity(formData, {
     save: async (payload) => {
       const { error } = await supabase.rpc("save_student_identity", payload);
       return { error };
+    },
+    loadStoredGraduationYear: async () => {
+      const { data, error } = await supabase
+        .from("student_profiles")
+        .select("graduation_year")
+        .eq("student_id", user.id)
+        .maybeSingle();
+      return error ? null : (data?.graduation_year ?? null);
     },
   });
 

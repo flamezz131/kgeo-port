@@ -549,10 +549,17 @@ function hasValidEventPage(
     }
 
     const older = events[index + 1];
+    // An undone transition no longer defines the state that followed it: the
+    // next event starts from the restored state instead, so the adjacent-chain
+    // check applies only when the older event has not been corrected.
+    const olderWasCorrected =
+      older !== undefined &&
+      (contextByEvent.get(older.id)?.correction_id ?? null) !== null;
     if (
       older &&
       (!isNewestFirst(event, older) ||
-        (event.previous_stage !== null &&
+        (!olderWasCorrected &&
+          event.previous_stage !== null &&
           (event.previous_stage !== older.new_stage ||
             event.previous_state !== older.new_state)))
     ) {

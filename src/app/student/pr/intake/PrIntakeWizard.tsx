@@ -170,10 +170,7 @@ export function PrIntakeWizard({
     <div className="bg-white border border-[#DCE6F2] rounded-2xl p-6 md:p-8 shadow-sm text-[#0F172A]">
       {/* Progress Header */}
       <div className="mb-6 pb-6 border-b border-[#DCE6F2]">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#1D4ED8]">
-            Step {step} of 2
-          </span>
+        <div className="mb-2">
           <span className="text-xs font-medium text-[#64748B]">
             {step === 1 && "Resume Upload"}
             {step === 2 && "Review & Generate"}

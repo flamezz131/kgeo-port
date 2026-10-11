@@ -7,7 +7,7 @@ if (!apiKey) {
   throw new Error('Missing GEMINI_API_KEY environment variable at startup.');
 }
 
-console.log(`Loaded GEMINI_API_KEY starting with: ${apiKey.substring(0, 10)}...`);
+console.log('GEMINI_API_KEY is configured.');
 
 export const geminiClient = new GoogleGenAI({ apiKey });
 export const ai = geminiClient;

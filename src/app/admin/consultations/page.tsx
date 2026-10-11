@@ -10,9 +10,6 @@ export default async function AdminConsultationsPage() {
   return (
     <div className="flex flex-col gap-7">
       <header>
-        <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-          Admin workspace
-        </span>
         <h1 className="mt-2">Consultations</h1>
         <p className="mt-2 max-w-xl text-slate-500">
           Administrative consultation reporting will be added in a separately

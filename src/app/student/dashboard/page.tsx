@@ -94,7 +94,7 @@ function ProgressRing({ value }: { value: number }) {
         <span className="text-2xl font-extrabold tabular-nums tracking-tight text-[#0B1F3A]">
           {clamped}%
         </span>
-        <span className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-slate-400">
+        <span className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-slate-500">
           Complete
         </span>
       </div>
@@ -181,7 +181,7 @@ function StudentConsultationCard({
         </dl>
       )}
 
-      <p className="mt-3 text-[0.7rem] text-slate-400">
+      <p className="mt-3 text-[0.7rem] text-slate-500">
         Requested{" "}
         <time dateTime={consultation.submitted_at}>
           {new Intl.DateTimeFormat("en", {
@@ -276,10 +276,7 @@ export default async function StudentDashboardPage() {
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-            Student dashboard
-          </span>
-          <h1 className="mt-2 text-[#0B1F3A]">Hello, {firstName}</h1>
+          <h1 className="text-[#0B1F3A]">Hello, {firstName}</h1>
           <p className="mt-2 max-w-xl text-slate-500">
             Track confirmed appointments and their final outcomes.
           </p>
@@ -314,14 +311,13 @@ export default async function StudentDashboardPage() {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-6 rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:flex-row sm:items-start sm:gap-7">
+          // Same radius and padding as the roadmap card beside it; the content
+          // is centred so the stretched card has no dead space below it.
+          <div className="flex flex-col gap-6 rounded-3xl border border-[#E2E8F0] bg-white p-8 shadow-[0_1px_3px_rgb(15_23_42/0.06)] sm:flex-row sm:items-center sm:gap-9 sm:p-10">
             <ProgressRing value={profileCompletion.percentage} />
 
             <div className="flex min-w-0 flex-1 flex-col">
-              <span className="text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-                Counseling profile
-              </span>
-              <h2 id="profile-progress-heading" className="mt-1.5">
+              <h2 id="profile-progress-heading">
                 {profileCompletion.title}
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-500">
@@ -405,10 +401,7 @@ export default async function StudentDashboardPage() {
 
       <section aria-labelledby="my-consultations-heading" id="my-consultations">
         <div className="mb-5">
-          <span className="text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-            Consultations
-          </span>
-          <h2 id="my-consultations-heading" className="mt-1.5">
+          <h2 id="my-consultations-heading">
             My consultations
           </h2>
         </div>

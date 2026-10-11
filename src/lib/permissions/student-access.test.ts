@@ -51,6 +51,66 @@ for (const role of ["counselor", "admin", "director"] as const) {
   });
 }
 
+test("a verified active Director with a KCLAS address is never a valid Student", () => {
+  const directorUser = {
+    id: "director-id",
+    email_confirmed_at: "2026-08-06T12:00:00Z",
+  };
+  assert.equal(
+    getStudentAccessDecision(directorUser, {
+      id: "director-id",
+      college_email: "director@kclas.ac.in",
+      full_name: "K-GEO Director",
+      role: "director",
+      is_active: true,
+    }),
+    "forbidden",
+  );
+});
+
+test("a verified active Counselor technical identity is never a valid Student", () => {
+  const counselorUser = {
+    id: "counselor-id",
+    email_confirmed_at: "2026-08-25T12:00:00Z",
+  };
+  assert.equal(
+    getStudentAccessDecision(counselorUser, {
+      id: "counselor-id",
+      college_email: "durga@counselor-auth.kgeo.internal",
+      full_name: "K-GEO Counselor",
+      role: "counselor",
+      is_active: true,
+    }),
+    "forbidden",
+  );
+});
+
+test("a Student profile belonging to a different user is rejected", () => {
+  assert.equal(
+    getStudentAccessDecision(
+      { id: "director-id", email_confirmed_at: "2026-08-06T12:00:00Z" },
+      activeStudentProfile,
+    ),
+    "forbidden",
+  );
+});
+
+for (const collegeEmail of [
+  "student@kct.ac.in",
+  "student@kclas.ac.in",
+  "student@kctbs.ac.in",
+]) {
+  test(`allows an active verified Student with ${collegeEmail}`, () => {
+    assert.equal(
+      getStudentAccessDecision(verifiedUser, {
+        ...activeStudentProfile,
+        college_email: collegeEmail,
+      }),
+      "allowed",
+    );
+  });
+}
+
 test("rejects an inactive student profile", () => {
   assert.equal(
     getStudentAccessDecision(verifiedUser, {

@@ -106,7 +106,6 @@ function DuplicateFutureClosureCard({
       >
         <form action={formAction} aria-busy={isPending} ref={formRef}>
           <header>
-            <span className="eyebrow">Controlled transition resolution</span>
             <h2 id={`duplicate-future-title-${consultation.requestNumber}`}>
               Close Duplicate Request
             </h2>
@@ -179,7 +178,6 @@ export function DirectorDuplicateFutureConsultationResolution({
     >
       <header className="director-assignment-heading">
         <div>
-          <span className="eyebrow">Controlled transition resolution</span>
           <h2 id="duplicate-future-resolution-heading">
             Duplicate future requests
           </h2>

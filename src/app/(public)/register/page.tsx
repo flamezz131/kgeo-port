@@ -40,7 +40,7 @@ export default function RegisterPage() {
                 {step.icon}
               </span>
               <span className="text-[0.9rem] text-slate-600">
-                <span className="mr-1.5 font-bold tabular-nums text-slate-400">
+                <span className="mr-1.5 font-bold tabular-nums text-slate-500">
                   {index + 1}.
                 </span>
                 {step.text}

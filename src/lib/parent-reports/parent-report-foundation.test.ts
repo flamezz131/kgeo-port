@@ -218,18 +218,35 @@ test("read-only verifier checks live sealed ACL Storage and final artifact state
   assert.doesNotMatch(verification, /^\s*(?:create|alter|drop|insert|update|delete|grant|revoke)\b/im);
 });
 
-test("PDF generator creates exactly two core pages before attachments", () => {
-  assert.equal((pdf.match(/document\.addPage\(\[A4_WIDTH, A4_HEIGHT\]\)/g) ?? []).length, 3);
-  assert.match(pdf, /const pageOne = document\.addPage/);
-  assert.match(pdf, /const pageTwo = document\.addPage/);
-  assert.match(pdf, /for \(const attachment of attachments\)/);
-  assert.match(pdf, /Core page \$\{pageNumber\} of 2/);
+test("PDF generator lays out report pages, stamps footers, then appends attachments", () => {
+  // Report pages flow through one paginating helper rather than a fixed count.
+  assert.match(pdf, /function addPage\(ctx: LayoutContext\)/);
+  assert.match(pdf, /function checkSpace\(ctx: LayoutContext, neededHeight: number\)/);
+  // Footers are numbered from the report page count and drawn before any
+  // attachment is appended, so a footer is never stamped over an attachment.
+  const footerLoop = pdf.indexOf("const pageCount = document.getPageCount();");
+  const attachmentLoop = pdf.indexOf("for (const attachment of attachments)");
+  assert.ok(footerLoop > 0, "footer pass is missing");
+  assert.ok(attachmentLoop > footerLoop, "attachments must follow the footer pass");
+  assert.match(pdf, /Page \$\{i \+ 1\} of \$\{pageCount\}/);
+  // Attachments stay bounded exactly as before.
+  assert.match(pdf, /const MAX_ATTACHMENT_PAGES = 40;/);
+  assert.match(pdf, /appendedPages \+ source\.getPageCount\(\) > MAX_ATTACHMENT_PAGES/);
+  assert.match(pdf, /Selected attachments exceed the 40-page report limit\./);
+  assert.match(pdf, /ignoreEncryption: false/);
+  // The logo is resolved inside the project, never from a machine-specific path.
+  assert.match(pdf, /path\.join\(process\.cwd\(\), "src", "logo", "image\.png"\)/);
+  assert.doesNotMatch(pdf, /readFileSync\("[A-Za-z]:/);
 });
 
 test("PDF has no numeric readiness score and omits empty facts safely", () => {
   assert.doesNotMatch(pdf, /readiness score|score percentage|numeric readiness/i);
-  assert.match(pdf, /No information recorded/);
+  // An empty narrative section is skipped; an empty fact renders a placeholder.
+  assert.match(pdf, /if \(!text\) return;/);
+  assert.match(pdf, /\|\| '--'/);
   assert.match(pdf, /filter\(Boolean\)/);
+  // Director remarks remain part of the report the Director reviewed.
+  assert.match(pdf, /report\.director_remarks/);
 });
 
 test("preview loaders reauthorize by role and fetch selected objects server-side", () => {

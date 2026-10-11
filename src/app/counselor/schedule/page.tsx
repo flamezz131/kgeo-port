@@ -63,7 +63,6 @@ function getSlotStateLabel(
 function CounselorScheduleUnavailable() {
   return (
     <section className="counselor-page">
-      <span className="eyebrow">Daily schedule</span>
       <h1>Schedule temporarily unavailable</h1>
       <div className="panel" role="alert">
         <p>Please refresh the page and try again.</p>
@@ -126,7 +125,6 @@ export default async function CounselorSchedulePage({
     <section className="counselor-page">
       <header className="counselor-page-header">
         <div>
-          <span className="eyebrow">Counselor operations</span>
           <h1>My Consultation Schedule</h1>
           <p className="muted">
             Sixteen canonical sessions, Monday through Friday, using
@@ -302,7 +300,6 @@ export default async function CounselorSchedulePage({
         >
           <div className="counselor-section-heading">
             <div>
-              <span className="eyebrow">Retained history</span>
               <h2 id="cancelled-heading">Cancelled consultations</h2>
             </div>
           </div>

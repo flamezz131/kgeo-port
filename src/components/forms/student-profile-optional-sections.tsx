@@ -41,7 +41,7 @@ import type {
   StudentTestScoreRecord,
 } from "@/lib/profiles/optional-records";
 import type { StudentAchievementDocument } from "@/types";
-import { sectionCardClass } from "@/components/shell/form-ui";
+import { sectionPlainClass } from "@/components/shell/form-ui";
 
 type RecordAction = (
   previousState: StudentOptionalRecordActionState,
@@ -690,10 +690,9 @@ export function StudentProfileExamSection({
     return (
       <section
         aria-labelledby="student-exams-heading"
-        className={`${sectionCardClass} grid gap-6 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:[scroll-behavior:auto]`}
+        className={`${sectionPlainClass} grid gap-6 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:[scroll-behavior:auto]`}
       >
         <header>
-          <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Section 5 of 6 · Optional</span>
           <h2 id="student-exams-heading">Study Abroad Exams</h2>
         </header>
         <div className="optional-record-unavailable" role="alert">
@@ -718,10 +717,9 @@ export function StudentProfileExamSection({
   return (
     <section
       aria-labelledby="student-exams-heading"
-      className={`${sectionCardClass} grid gap-6 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:[scroll-behavior:auto]`}
+      className={`${sectionPlainClass} grid gap-6 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:[scroll-behavior:auto]`}
     >
       <header>
-        <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Section 5 of 6 · Optional</span>
         <h2 id="student-exams-heading">Study Abroad Exams</h2>
         <p>
           Track planned, booked, and completed exam attempts. This section does
@@ -883,10 +881,9 @@ export function StudentProfileAchievementSection({
     return (
       <section
         aria-labelledby="student-achievements-heading"
-        className={`${sectionCardClass} grid gap-6 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:[scroll-behavior:auto]`}
+        className={`${sectionPlainClass} grid gap-6 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:[scroll-behavior:auto]`}
       >
         <header>
-          <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Section 3 of 6 · Optional</span>
           <h2 id="student-achievements-heading">Achievements</h2>
         </header>
         <div className="optional-record-unavailable" role="alert">
@@ -910,10 +907,9 @@ export function StudentProfileAchievementSection({
   return (
     <section
       aria-labelledby="student-achievements-heading"
-      className={`${sectionCardClass} grid gap-6 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:[scroll-behavior:auto]`}
+      className={`${sectionPlainClass} grid gap-6 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:[scroll-behavior:auto]`}
     >
       <header>
-        <span className="inline-block text-[0.76rem] font-[850] uppercase leading-[1.4] tracking-[0.12em] text-[var(--brand-600)]">Section 3 of 6 · Optional</span>
         <h2 id="student-achievements-heading">Achievements</h2>
         <p>
           Add student-reported experience and accomplishments. This optional

@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { parentReportStatusLabels, formatParentReportTimestamp } from "@/lib/parent-reports/parent-report";
 import { loadDirectorParentReports } from "@/lib/parent-reports/server";
 import { sectionCardClass } from "@/components/shell/form-ui";
+
+export const metadata: Metadata = { title: "Parent Reports" };
 
 export default async function DirectorParentReportsPage() {
   const result = await loadDirectorParentReports();
@@ -11,7 +14,7 @@ export default async function DirectorParentReportsPage() {
   return (
     <section className="counselor-page director-parent-reports">
       <header className="counselor-page-header">
-        <div><span className="eyebrow">Director review workspace</span><h1>Parent Reports</h1><p>Review parent-safe narrative and selected attachments before immutable finalization.</p></div>
+        <div><h1>Parent Reports</h1><p>Review parent-safe narrative and selected attachments before immutable finalization.</p></div>
       </header>
       {result.reports.length === 0 ? (
         <div className={sectionCardClass}><h2>No reports awaiting or completing review</h2><p>Counselor submissions will appear here.</p></div>

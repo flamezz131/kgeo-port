@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ParentReportWorkspace } from "@/components/parent-reports/parent-report-workspace";
 import { loadDirectorParentReport } from "@/lib/parent-reports/server";
+
+export const metadata: Metadata = { title: "Parent Report" };
 
 export default async function DirectorParentReportPage({ params }: { params: Promise<{ "report-id": string }> }) {
   const reportId = (await params)["report-id"];

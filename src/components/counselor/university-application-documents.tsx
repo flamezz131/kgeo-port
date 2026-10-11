@@ -515,7 +515,6 @@ export function UniversityApplicationDocuments({
             onSubmit={handleUploadSubmit}
           >
             <div className="p-6 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1 block">Private application file</span>
               <h3 id={`${sectionId}-upload-title`} className="text-xl font-bold text-[#0B1F3A]" ref={uploadHeadingRef} tabIndex={-1}>
                 Upload document
               </h3>
@@ -625,7 +624,6 @@ export function UniversityApplicationDocuments({
           >
             <input name="documentId" type="hidden" value={removeDocument.documentId} />
             <div className="p-6 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1 block">Retained audit record</span>
               <h3 id={`${sectionId}-remove-title`} className="text-xl font-bold text-[#0B1F3A]" ref={removeHeadingRef} tabIndex={-1}>
                 Remove document
               </h3>

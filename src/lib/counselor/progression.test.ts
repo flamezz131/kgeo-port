@@ -744,6 +744,91 @@ test("a corrected newest transition resolves current against the latest effectiv
   });
 });
 
+test("a transition after an undone transition starts from the restored state", async () => {
+  const initialEvent = initialization();
+  const undoneStageChange: OfficialProgressionEvent = {
+    id: "55555555-5555-4555-8555-555555555555",
+    student_id: STUDENT_ID,
+    previous_stage: "profile_review",
+    new_stage: "goals_confirmed",
+    previous_state: "active",
+    new_state: "active",
+    changed_by: COUNSELOR_ID,
+    change_reason: null,
+    changed_at: "2026-07-25T06:00:00.000Z",
+  };
+  // Recorded after the undo, so it starts from the restored state rather than
+  // from the undone event's new state.
+  const holdAfterUndo: OfficialProgressionEvent = {
+    id: "66666666-6666-4666-8666-666666666666",
+    student_id: STUDENT_ID,
+    previous_stage: "profile_review",
+    new_stage: "profile_review",
+    previous_state: "active",
+    new_state: "on_hold",
+    changed_by: COUNSELOR_ID,
+    change_reason: null,
+    changed_at: "2026-07-25T08:00:00.000Z",
+  };
+  const sharedEffective = {
+    effective_event_exists: true,
+    latest_effective_event_id: holdAfterUndo.id,
+    latest_effective_stage: holdAfterUndo.new_stage,
+    latest_effective_state: holdAfterUndo.new_state,
+    latest_effective_changed_at: holdAfterUndo.changed_at,
+    latest_effective_changed_by: holdAfterUndo.changed_by,
+    total_correction_count: 1,
+  };
+  const uncorrected = {
+    correction_id: null,
+    correction_type: null,
+    restored_stage: null,
+    restored_state: null,
+    restored_stage_started_at: null,
+    correction_reason: null,
+    corrected_at: null,
+  };
+  const undo = {
+    correction_id: "99999999-9999-4999-8999-999999999999",
+    correction_type: "undo_transition",
+    restored_stage: "profile_review",
+    restored_state: "active",
+    restored_stage_started_at: initialEvent.changed_at,
+    correction_reason: "Incorrect stage selected",
+    corrected_at: "2026-07-25T07:00:00.000Z",
+  };
+  const load = (stageChangeCorrection: typeof uncorrected | typeof undo) =>
+    fetchCounselorStudentProgression(
+      STUDENT_ID,
+      1,
+      source({
+        currentData: current({
+          workflow_state: "on_hold",
+          last_changed_at: holdAfterUndo.changed_at,
+          updated_at: holdAfterUndo.changed_at,
+        }),
+        events: [holdAfterUndo, undoneStageChange, initialEvent],
+        count: 3,
+        correctionContext: [
+          { target_event_id: holdAfterUndo.id, ...uncorrected, ...sharedEffective },
+          {
+            target_event_id: undoneStageChange.id,
+            ...stageChangeCorrection,
+            ...sharedEffective,
+          },
+          { target_event_id: initialEvent.id, ...uncorrected, ...sharedEffective },
+        ],
+      }),
+    );
+
+  const corrected = await load(undo);
+  assert.equal(corrected.kind, "ready");
+
+  // Without the undo the same chain is broken and must still fail closed.
+  const broken = await load(uncorrected);
+  assert.equal(broken.kind, "unavailable");
+});
+
 test("an audited initialization reset permits retained history without a current row", async () => {
   const initialEvent = initialization();
   const correctionContext = [

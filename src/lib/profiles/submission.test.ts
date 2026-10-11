@@ -41,6 +41,11 @@ const {
   submitStudentPreferences,
 } = require("./submission.ts") as typeof import("./submission");
 
+// Fixtures follow the calendar so these tests never expire.
+const CURRENT_YEAR = new Date().getFullYear();
+const VALID_GRADUATION_YEAR = CURRENT_YEAR + 1;
+const STORED_OUT_OF_RANGE_YEAR = CURRENT_YEAR + 9;
+
 function validIdentityFormData() {
   const formData = new FormData();
   formData.set("fullName", "  Ananya   Kumar  ");
@@ -52,7 +57,7 @@ function validIdentityFormData() {
   formData.set("department", "Computer Science and Engineering");
   formData.set("currentYear", "4");
   formData.set("currentSemester", "7");
-  formData.set("graduationYear", "2027");
+  formData.set("graduationYear", String(VALID_GRADUATION_YEAR));
   formData.set("student_id", "attacker-id");
   formData.set("role", "director");
   formData.set("college_email", "attacker@example.com");
@@ -108,7 +113,7 @@ const expectedIdentityPayload: StudentIdentitySavePayload = {
   p_department: "Computer Science and Engineering",
   p_current_year: 4,
   p_current_semester: 7,
-  p_graduation_year: 2027,
+  p_graduation_year: VALID_GRADUATION_YEAR,
 };
 
 const expectedPreferencePayload: StudentPreferenceInsertPayload = {
@@ -144,6 +149,72 @@ test("saves the normalized name and approved identity fields in one call", async
   assert.equal(state.status, "success");
   assert.deepEqual(received, expectedIdentityPayload);
   assert.equal(saveCalls, 1);
+});
+
+test("an unchanged stored graduation year outside the range is saved, not lost", async () => {
+  const formData = validIdentityFormData();
+  formData.set("graduationYear", String(STORED_OUT_OF_RANGE_YEAR));
+  let received: StudentIdentitySavePayload | null = null;
+  let storedLookups = 0;
+
+  const state = await submitStudentIdentity(formData, {
+    save: async (payload) => {
+      received = payload;
+      return { error: null };
+    },
+    loadStoredGraduationYear: async () => {
+      storedLookups += 1;
+      return STORED_OUT_OF_RANGE_YEAR;
+    },
+  });
+
+  assert.equal(state.status, "success");
+  assert.equal(storedLookups, 1);
+  assert.deepEqual(received, {
+    ...expectedIdentityPayload,
+    p_graduation_year: STORED_OUT_OF_RANGE_YEAR,
+  });
+});
+
+test("an out-of-range graduation year is rejected unless it is the trusted stored value", async () => {
+  for (const loadStoredGraduationYear of [
+    undefined,
+    async () => null,
+    async () => STORED_OUT_OF_RANGE_YEAR - 1,
+    async () => {
+      throw new Error("lookup failed");
+    },
+  ]) {
+    const formData = validIdentityFormData();
+    formData.set("graduationYear", String(STORED_OUT_OF_RANGE_YEAR));
+    let saveCalled = false;
+
+    const state = await submitStudentIdentity(formData, {
+      save: async () => {
+        saveCalled = true;
+        return { error: null };
+      },
+      loadStoredGraduationYear,
+    });
+
+    assert.equal(state.status, "error");
+    assert.equal(saveCalled, false);
+    assert.ok(state.errors?.graduationYear?.length);
+  }
+});
+
+test("the stored graduation year is not looked up for an in-range selection", async () => {
+  let storedLookups = 0;
+  const state = await submitStudentIdentity(validIdentityFormData(), {
+    save: async () => ({ error: null }),
+    loadStoredGraduationYear: async () => {
+      storedLookups += 1;
+      return STORED_OUT_OF_RANGE_YEAR;
+    },
+  });
+
+  assert.equal(state.status, "success");
+  assert.equal(storedLookups, 0);
 });
 
 test("does not call persistence when the combined identity is invalid", async () => {

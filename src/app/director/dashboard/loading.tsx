@@ -16,9 +16,6 @@ export default function DirectorDashboardLoading() {
       role="status"
     >
       <div>
-        <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.14em] text-[#1D4ED8]">
-          Director dashboard
-        </span>
         <h1 className="mt-2">Loading operational overview&hellip;</h1>
         <p className="mt-2 text-slate-500">
           Preparing current metrics, workload, and attention items.

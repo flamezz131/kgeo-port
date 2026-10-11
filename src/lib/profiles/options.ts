@@ -23,18 +23,82 @@ export type ProfileCollege = (typeof PROFILE_COLLEGES)[number];
 export const PROFILE_CATALOG_NOTICE =
   "The current college, course, and department lists are provisional and require official Kumaraguru verification.";
 
+// Every graduation year the database can store. Counselor filters and
+// parsers use this so that all stored Student records remain readable.
 export const PROFILE_GRADUATION_YEARS = Array.from(
   { length: 2040 - 2024 + 1 },
   (_, index) => 2024 + index,
 );
 
+// The database safety envelope for a stored graduation year. Read-side
+// parsers accept this whole envelope so that no validly stored Student record
+// can make a Counselor or Director view fail. It is deliberately much wider
+// than what a Student may newly select.
+export const GRADUATION_YEAR_STORAGE_MINIMUM = 2000;
+export const GRADUATION_YEAR_STORAGE_MAXIMUM = 2100;
+
+export function isStorableGraduationYear(year: number): boolean {
+  return (
+    Number.isInteger(year) &&
+    year >= GRADUATION_YEAR_STORAGE_MINIMUM &&
+    year <= GRADUATION_YEAR_STORAGE_MAXIMUM
+  );
+}
+
+// Years a Student may newly select: the current calendar year, the four
+// before it and the four after it.
+export const GRADUATION_YEAR_SELECTION_SPAN = 4;
+
+export function getGraduationYearRange(
+  referenceYear: number = new Date().getFullYear(),
+): { minimum: number; maximum: number } {
+  return {
+    minimum: referenceYear - GRADUATION_YEAR_SELECTION_SPAN,
+    maximum: referenceYear + GRADUATION_YEAR_SELECTION_SPAN,
+  };
+}
+
+// A year is acceptable when it is inside the selectable range, or when it is
+// the Student's already-stored year, which must never be lost by an edit.
+export function isSelectableGraduationYear(
+  year: number,
+  referenceYear: number = new Date().getFullYear(),
+  storedYear: number | null = null,
+): boolean {
+  if (!Number.isInteger(year)) return false;
+  const { minimum, maximum } = getGraduationYearRange(referenceYear);
+  return (year >= minimum && year <= maximum) || year === storedYear;
+}
+
+// Ascending selectable years. A stored year outside the range is kept as an
+// extra option so opening and saving the form cannot silently change it.
+export function getGraduationYearOptions(
+  referenceYear: number = new Date().getFullYear(),
+  storedYear: number | null = null,
+): number[] {
+  const { minimum, maximum } = getGraduationYearRange(referenceYear);
+  const years = Array.from(
+    { length: maximum - minimum + 1 },
+    (_, index) => minimum + index,
+  );
+  if (
+    storedYear !== null &&
+    Number.isInteger(storedYear) &&
+    !years.includes(storedYear)
+  ) {
+    years.push(storedYear);
+    years.sort((left, right) => left - right);
+  }
+  return years;
+}
+
 export const PROFILE_CURRENT_YEARS = Array.from(
-  { length: 8 },
+  { length: 4 },
   (_, index) => index + 1,
 );
 
 export const PROFILE_CURRENT_SEMESTERS = Array.from(
-  { length: 16 },
+  { length: 8 },
   (_, index) => index + 1,
 );
 

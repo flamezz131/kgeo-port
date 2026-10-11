@@ -38,7 +38,6 @@ export default async function CounselorStudentsPage({
     <div className="flex flex-col gap-7">
       <PageHeader
         description="View registered students, profile progress, higher-studies readiness, and target intake."
-        eyebrow="Counselor directory"
         title="Students"
       />
 
@@ -47,7 +46,6 @@ export default async function CounselorStudentsPage({
       <section aria-labelledby="student-directory-heading">
         <SectionHeader
           description="This broader directory is not a Primary Counselor assignment list."
-          eyebrow="Organization-wide students"
           title="Student directory"
           titleId="student-directory-heading"
         />

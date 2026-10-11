@@ -48,6 +48,22 @@ test("one identity form contains the canonical name first and read-only college 
   assert.match(actionSource, /revalidatePath\("\/counselor\/students"\)/);
 });
 
+test("graduation year options come from the shared helper and keep the stored value", () => {
+  assert.match(
+    formSource,
+    /getGraduationYearOptions\(\s*undefined,\s*profile\?\.graduation_year \?\? null,\s*\)\.map\(\(year\) => \(/,
+  );
+  assert.match(
+    formSource,
+    /defaultValue=\{profile\?\.graduation_year \?\? ""\}\s*id="profileGraduationYear"\s*name="graduationYear"/,
+  );
+  assert.doesNotMatch(formSource, /PROFILE_GRADUATION_YEARS/);
+  assert.match(
+    actionSource,
+    /loadStoredGraduationYear: async \(\) => \{[\s\S]*?\.from\("student_profiles"\)[\s\S]*?\.select\("graduation_year"\)[\s\S]*?\.eq\("student_id", user\.id\)/,
+  );
+});
+
 test("forms announce outcomes and expose a pending state", () => {
   assert.match(formSource, /state\.status !== "error"/);
   assert.match(formSource, /className="form-error" role="alert"/);
@@ -63,10 +79,11 @@ test("forms announce outcomes and expose a pending state", () => {
 
 test("student navigation and dashboard expose the guarded profile route", () => {
   // The student shell renders its nav via <StudentSidebar>; the profile route
-  // and its label live there as a data-driven link entry.
+  // lives there as the link on the signed-in student's name block.
   assert.match(studentLayoutSource, /<StudentSidebar/);
   assert.match(studentSidebarSource, /href: "\/student\/profile"/);
-  assert.match(studentSidebarSource, /label: "My Profile"/);
+  assert.match(studentSidebarSource, /label: "View my profile"/);
+  assert.match(studentSidebarSource, /profileLink=\{/);
   assert.match(dashboardSource, /href="\/student\/profile"/);
   assert.match(dashboardSource, /mapProfileCompletion/);
 });

@@ -34,7 +34,6 @@ export default async function DirectorCounselorsPage() {
       <section className="counselor-page director-page director-approval-page">
         <header className="counselor-page-header director-page-header">
           <div>
-            <span className="eyebrow">Counselor access control</span>
             <h1>Counselor management</h1>
             <p>
               Review counselor registrations and control access to the
