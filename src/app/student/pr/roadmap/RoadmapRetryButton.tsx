@@ -24,9 +24,9 @@ export function RoadmapRetryButton() {
       // Generation succeeded or accepted, go to roadmap view / refresh
       router.refresh();
       router.push("/student/pr/roadmap");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Retry generation failed:", err);
-      setError(err.message || "Failed to retry roadmap generation.");
+      setError(err instanceof Error ? err.message : "Failed to retry roadmap generation.");
       setLoading(false);
     }
   };

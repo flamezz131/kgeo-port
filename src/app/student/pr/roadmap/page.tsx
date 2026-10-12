@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports -- ported as-is from K-GEO-merge2; the recommendation schema is untyped. */
+/* eslint-disable @typescript-eslint/no-explicit-any -- recommendation DB schema runtime mapping */
 import type { Metadata } from "next";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireStudent } from "@/lib/permissions";
@@ -50,6 +51,12 @@ const BUCKETS = [
 
 export default async function PersonalizedRoadmapPage() {
   const { supabase, user, profile } = await requireStudent();
+
+  const { data: studentProfile } = await supabase
+    .from("student_profiles")
+    .select("roll_number, course, department, current_year")
+    .eq("student_id", user.id)
+    .maybeSingle();
 
   // 1. Check for the student's most recent PR recommendation
   const { data: recs, error: recError } = await (supabase as any)
@@ -198,7 +205,6 @@ export default async function PersonalizedRoadmapPage() {
     topActions: string[];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const displayItems: DisplayItem[] = (items || []).map((item: any): DisplayItem => {
     const insight = Array.isArray(item.pr_insights) ? item.pr_insights[0] : item.pr_insights;
     const aiRaw = insight?.raw_ai_output || {};
@@ -232,17 +238,19 @@ export default async function PersonalizedRoadmapPage() {
     <div id="roadmap-content" className="space-y-12 print:space-y-8 print:bg-white print:py-0 print:text-black">
       
       {/* Print-only Watermark */}
-      <img 
+      <Image 
         src="/logo-updated.png" 
         alt="" 
-        className="hidden print:block fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140px] opacity-[0.06] pointer-events-none z-[-1]" 
+        width={140}
+        height={40}
+        className="hidden print:block fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.06] pointer-events-none z-[-1]" 
       />
 
       {/* Print-only Header & Profile (Mimics Parent Progress Report) */}
       <div className="hidden print:block pdf-cover mb-8 relative">
         {/* Top Header Row */}
         <div className="flex items-center justify-between border-b border-[#cbd5e1] pb-4 mb-2">
-          <img src="/logo-updated.png" alt="K-GEO" className="h-12 object-contain" />
+          <Image src="/logo-updated.png" alt="K-GEO" width={120} height={48} className="h-12 w-auto object-contain" />
           <div className="text-right">
             <h1 className="text-3xl font-bold text-[#0b1f3a] tracking-tight">Personalized Roadmap Report</h1>
             <p className="text-sm font-semibold text-[#64748b] uppercase tracking-wider mt-1">Academic Period: Current</p>
@@ -251,7 +259,7 @@ export default async function PersonalizedRoadmapPage() {
 
         {/* Subtitle Line */}
         <div className="text-right text-xs text-[#64748b] mb-8">
-          {profile?.full_name || "Student"} | {profile?.roll_number || '--'} | PR Report
+          {profile.full_name || "Student"} | {studentProfile?.roll_number || "--"} | PR Report
         </div>
 
         {/* Student Profile Table */}
@@ -264,19 +272,19 @@ export default async function PersonalizedRoadmapPage() {
           <div className="border-t border-[#cbd5e1]">
             <div className="flex border-b border-[#cbd5e1] py-3">
               <div className="w-1/3 text-[10px] font-bold text-[#64748b] uppercase">Student</div>
-              <div className="w-2/3 text-sm font-bold text-[#0b1f3a]">{profile?.full_name || "Student"}</div>
+              <div className="w-2/3 text-sm font-bold text-[#0b1f3a]">{profile.full_name || "Student"}</div>
             </div>
             <div className="flex border-b border-[#cbd5e1] py-3">
               <div className="w-1/3 text-[10px] font-bold text-[#64748b] uppercase">Roll Number</div>
-              <div className="w-2/3 text-sm font-bold text-[#0b1f3a]">{profile?.roll_number || "--"}</div>
+              <div className="w-2/3 text-sm font-bold text-[#0b1f3a]">{studentProfile?.roll_number || "--"}</div>
             </div>
             <div className="flex border-b border-[#cbd5e1] py-3">
               <div className="w-1/3 text-[10px] font-bold text-[#64748b] uppercase">Course</div>
-              <div className="w-2/3 text-sm font-bold text-[#0b1f3a]">{profile?.course || "--"}</div>
+              <div className="w-2/3 text-sm font-bold text-[#0b1f3a]">{studentProfile?.course || "--"}</div>
             </div>
             <div className="flex border-b border-[#cbd5e1] py-3">
               <div className="w-1/3 text-[10px] font-bold text-[#64748b] uppercase">Department</div>
-              <div className="w-2/3 text-sm font-bold text-[#0b1f3a]">{profile?.department || "--"}</div>
+              <div className="w-2/3 text-sm font-bold text-[#0b1f3a]">{studentProfile?.department || "--"}</div>
             </div>
           </div>
         </div>
@@ -294,8 +302,8 @@ export default async function PersonalizedRoadmapPage() {
         </div>
         <div className="flex items-center gap-3 no-export">
           <ExportRoadmapButton 
-            studentName={profile?.full_name || "Student"} 
-            studentEmail={profile?.college_email || user.email || ""} 
+            studentName={profile.full_name || "Student"} 
+            studentEmail={profile.college_email || user.email || ""} 
             date={generatedDateStr} 
           />
           <Link
@@ -315,7 +323,7 @@ export default async function PersonalizedRoadmapPage() {
               Readiness Overview
             </h2>
             <p className="text-sm text-[#64748B]">
-              Based on your academic profile, test scores, and experience compared to target universities.
+              AI-estimated readiness comparing your academic profile, test scores, and experience to target universities.
             </p>
           </div>
         </div>
@@ -343,7 +351,8 @@ export default async function PersonalizedRoadmapPage() {
                 <span className="text-3xl font-black text-[#0B1F3A]">{readinessScore}%</span>
               </div>
             </div>
-            <h3 className="text-lg font-bold text-[#0B1F3A]">Overall Readiness</h3>
+            <h3 className="text-lg font-bold text-[#0B1F3A]">AI-Estimated Readiness</h3>
+            <p className="text-[11px] text-[#64748B] mt-1 text-center">Indicative estimate; official readiness is assessed with your counselor.</p>
           </div>
 
           <div className="bg-white border border-[#DCE6F2] rounded-2xl p-6 shadow-sm hover:border-emerald-500 transition-all break-inside-avoid print:border-gray-300 print:shadow-none">

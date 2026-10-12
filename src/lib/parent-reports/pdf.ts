@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "server-only";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 import {
   PDFDocument,
   StandardFonts,
@@ -500,21 +502,24 @@ function drawApplicationsTable(ctx: LayoutContext, apps: any[]) {
 
 export async function createParentReportPdf(
   report: ParentReportRenderPayload,
-  attachments: ParentReportPdfAttachment[] = [],
+  _attachments: ParentReportPdfAttachment[] = [],
 ): Promise<Uint8Array> {
+  void _attachments;
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.Helvetica);
   const bold = await document.embedFont(StandardFonts.HelveticaBold);
-  const capturedAt = new Date(report.source_snapshot.captured_at);
   
   document.setTitle(`K-GEO Parent Report - ${report.academic_period}`);
   document.setAuthor("K-GEO");
   
   let logoImage: PDFImage | null = null;
   try {
-    const logoBytes = readFileSync("D:\\updated Kgeo new 710\\kgeo-port\\src\\logo\\image.png");
-    logoImage = await document.embedPng(logoBytes);
-  } catch (error) {
+    const logoPath = join(process.cwd(), "public", "logo-updated.png");
+    if (existsSync(logoPath)) {
+      const logoBytes = readFileSync(logoPath);
+      logoImage = await document.embedPng(logoBytes);
+    }
+  } catch {
     console.warn("Could not load logo image for PDF report");
   }
 

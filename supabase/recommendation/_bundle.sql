@@ -259,4 +259,113 @@ using (
   and (storage.foldername(name))[1] = auth.uid()::text
 );
 
+-- 9. Storage update and delete policies for resumes
+create policy "students update own resumes"
+on storage.objects for update
+using (
+  bucket_id = 'student-resumes'
+  and (storage.foldername(name))[1] = auth.uid()::text
+)
+with check (
+  bucket_id = 'student-resumes'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+create policy "students delete own resumes"
+on storage.objects for delete
+using (
+  bucket_id = 'student-resumes'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+
+-- >>> supabase/recommendation/202610120001_ai_recommendation_contract.sql
+alter table recommendation.recommendations
+  add column if not exists profile_snapshot jsonb,
+  add column if not exists error_message text;
+
+create index if not exists idx_recommendations_student_generated
+  on recommendation.recommendations (student_id, generated_at desc);
+
+create unique index if not exists idx_recommendations_one_queued_per_student
+  on recommendation.recommendations (student_id)
+  where (status = 'queued');
+
+alter table recommendation.development_plans
+  add column if not exists readiness_score numeric,
+  add column if not exists strengths jsonb not null default '[]'::jsonb,
+  add column if not exists priority_gaps jsonb not null default '[]'::jsonb,
+  add column if not exists quick_wins jsonb not null default '[]'::jsonb,
+  add column if not exists long_term_actions jsonb not null default '[]'::jsonb;
+
+alter table recommendation.pr_insights
+  add column if not exists why_recommended jsonb not null default '[]'::jsonb,
+  add column if not exists top_actions jsonb not null default '[]'::jsonb,
+  add column if not exists current_profile jsonb not null default '{}'::jsonb,
+  add column if not exists target_profile jsonb not null default '{}'::jsonb,
+  add column if not exists gaps jsonb not null default '[]'::jsonb,
+  add column if not exists detailed_roadmap jsonb not null default '[]'::jsonb,
+  add column if not exists risks jsonb not null default '[]'::jsonb,
+  add column if not exists application_readiness jsonb not null default '{}'::jsonb;
+
+create index if not exists idx_recommendation_items_rec_id
+  on recommendation.recommendation_items (recommendation_id);
+
+create index if not exists idx_pr_insights_item_id
+  on recommendation.pr_insights (recommendation_item_id);
+
+create table if not exists recommendation.student_roadmap_tasks (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references auth.users(id) on delete cascade,
+  recommendation_id uuid not null references recommendation.recommendations(id) on delete cascade,
+  university_program_id uuid references recommendation.university_programs(id) on delete set null,
+  task_key text not null,
+  category text,
+  title text not null,
+  description text,
+  priority text not null default 'MEDIUM' check (priority in ('HIGH', 'MEDIUM', 'LOW')),
+  status text not null default 'not_started' check (status in ('not_started', 'in_progress', 'completed', 'archived')),
+  target_outcome text,
+  estimated_duration text,
+  phase int not null default 1,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_roadmap_tasks_rec_id
+  on recommendation.student_roadmap_tasks (recommendation_id);
+
+create index if not exists idx_roadmap_tasks_student_id
+  on recommendation.student_roadmap_tasks (student_id);
+
+alter table recommendation.student_roadmap_tasks enable row level security;
+
+create policy "students read own roadmap tasks"
+  on recommendation.student_roadmap_tasks
+  for select
+  using (student_id = auth.uid());
+
+grant usage on schema recommendation to authenticated, service_role;
+revoke all on schema recommendation from anon;
+
+grant select on
+  recommendation.recommendations,
+  recommendation.recommendation_items,
+  recommendation.pr_insights,
+  recommendation.development_plans,
+  recommendation.student_roadmap_tasks,
+  recommendation.universities,
+  recommendation.programs,
+  recommendation.university_programs
+to authenticated;
+
+grant all on all tables in schema recommendation to service_role;
+grant all on all sequences in schema recommendation to service_role;
+grant all on all routines in schema recommendation to service_role;
+
+revoke all on all tables in schema recommendation from anon;
+revoke all on all sequences in schema recommendation from anon;
+revoke all on all routines in schema recommendation from anon;
+
+
 

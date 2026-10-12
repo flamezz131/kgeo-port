@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports -- ported as-is from K-GEO-merge2; the recommendation schema is untyped. */
+/* eslint-disable @typescript-eslint/no-explicit-any -- recommendation DB schema runtime mapping */
 // supabaseAdmin is not imported at top-level to prevent crashing in Next.js client environments
 
 export interface FormattedStudentContext {
@@ -102,7 +102,7 @@ export async function loadStudentContextForPR(studentId: string, customDb?: any)
     academic: {
       department: profile?.department ?? null,
       cgpa: profile?.cgpa ?? null,
-      backlogs: profile ? ((profile.active_backlogs || 0) + (profile.cleared_backlogs || 0)) : null,
+      backlogs: profile?.active_backlogs ?? null,
       tenthPercentage: profile?.sslc_percentage ?? null,
       twelfthPercentage: profile?.hsc_percentage ?? null,
       currentYear: profile?.current_year ?? null,

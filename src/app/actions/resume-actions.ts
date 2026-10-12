@@ -27,6 +27,11 @@ export async function linkResumeToProfile(
   const session = await getAuthorizedStudent(studentId);
   if (!session) return { success: false, error: "You are not signed in." };
 
+  // Verify that the path strictly belongs to the student's own folder and has .pdf extension
+  if (!path.startsWith(`${session.user.id}/`) || !path.toLowerCase().endsWith(".pdf")) {
+    return { success: false, error: "Invalid resume file path." };
+  }
+
   const { error } = await session.supabase
     .from("student_profiles")
     .update({ resume_path: path })
@@ -48,6 +53,10 @@ export async function removeResume(
 ): Promise<ResumeActionResult> {
   const session = await getAuthorizedStudent(studentId);
   if (!session) return { success: false, error: "You are not signed in." };
+
+  if (!path.startsWith(`${session.user.id}/`)) {
+    return { success: false, error: "Invalid resume file path." };
+  }
 
   // 1. Remove from DB first so it instantly disappears from UI, even if storage deletion fails
   const { error: dbError } = await session.supabase

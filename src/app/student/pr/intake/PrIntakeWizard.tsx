@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { uploadResume } from "@/lib/uploadResume";
 import { linkResumeToProfile, removeResume } from "@/app/actions/resume-actions";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { FileText, UploadCloud, CheckCircle, Trash2 } from "lucide-react";
 
 import { FormattedStudentContext } from "@/lib/recommendations/loadStudentContext";
@@ -21,7 +20,6 @@ export function PrIntakeWizard({
   studentContext,
 }: PrIntakeWizardProps) {
   const router = useRouter();
-  const supabase = createClient();
   const [step, setStep] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

@@ -12,9 +12,10 @@ export async function GET(
   }
   try {
     return await createParentReportPdfResponse(payload);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("PDF GENERATION ERROR:", error);
-    return new Response(`Parent Report preview is temporarily unavailable. Error: ${error?.message || error}`, {
+    const message = error instanceof Error ? error.message : String(error);
+    return new Response(`Parent Report preview is temporarily unavailable. Error: ${message}`, {
       status: 503,
     });
   }
