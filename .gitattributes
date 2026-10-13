@@ -1,0 +1,16 @@
+# Normalize all text files to LF in the repository and working tree.
+# The migration-immutability tests hash source files on disk, so a Windows
+# CRLF checkout must not alter their contents.
+* text=auto eol=lf
+
+# Binary assets git should never touch
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.mp4 binary
